@@ -1,4 +1,5 @@
 import type { FieldDefinition, FormDefinition, ShowIfCondition } from '../schema/types'
+import { collectAllFields } from '../schema/collect-fields'
 
 // ---- Public types ----------------------------------------------------
 
@@ -130,10 +131,7 @@ export function buildDependencyGraph(definition: FormDefinition): DependencyGrap
   const nodes = new Set<string>()
   const fieldConditions = new Map<string, ShowIfCondition>()
 
-  const allFields = [
-    ...(definition.fields ?? []),
-    ...(definition.steps?.flatMap((s) => s.fields) ?? []),
-  ]
+  const allFields = collectAllFields(definition)
 
   collectEdges(allFields, edges, reverse, nodes, fieldConditions)
 

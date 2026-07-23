@@ -3,6 +3,7 @@
 import { useMemo, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import type { FormDefinition } from '../schema/types'
+import { collectAllFields } from '../schema/collect-fields'
 import { buildDependencyGraph } from '../core/dependency-graph'
 import { evaluateVisibility, type VisibilityMap } from '../core/condition-evaluator'
 import { buildZodSchema } from '../core/zod-builder'
@@ -26,13 +27,7 @@ interface FormEngineProps {
 
 export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProps) {
   // D6: single allFields memo — reused by initialVisibility, store, and body rendering
-  const allFields = useMemo(
-    () => [
-      ...(schema.fields ?? []),
-      ...(schema.steps?.flatMap((s) => s.fields) ?? []),
-    ],
-    [schema],
-  )
+  const allFields = useMemo(() => collectAllFields(schema), [schema])
 
   // Build dependency graph once per schema (memoized)
   const graph = useMemo(() => buildDependencyGraph(schema), [schema])

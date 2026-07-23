@@ -2,6 +2,7 @@
 // It is a pure core module that only depends on zod and the schema types.
 import { z } from 'zod'
 import type { FieldDefinition, FormDefinition } from '../schema/types'
+import { collectAllFields } from '../schema/collect-fields'
 import type { VisibilityMap } from './condition-evaluator'
 
 // ---- Internal helpers -----------------------------------------------
@@ -98,10 +99,5 @@ export function buildZodSchema(
   definition: FormDefinition,
   visibility: VisibilityMap,
 ): z.ZodObject<Record<string, z.ZodTypeAny>> {
-  const allFields = [
-    ...(definition.fields ?? []),
-    ...(definition.steps?.flatMap((s) => s.fields) ?? []),
-  ]
-
-  return buildZodObject(allFields, visibility)
+  return buildZodObject(collectAllFields(definition), visibility)
 }
