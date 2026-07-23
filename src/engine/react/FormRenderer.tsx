@@ -1,0 +1,196 @@
+// FormRenderer — iterates FieldDefinitions and dispatches each to its registered component.
+// Wraps each field in a visibility gate via useFieldVisibility.
+// Handles 'array' and 'group' types with recursive rendering.
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
+import type { FieldDefinition } from '../schema/types'
+import type { VisibilityStore } from '../store/visibility-store'
+import { useFieldVisibility } from './useFieldVisibility'
+import { TextField } from './fields/TextField'
+import { NumberField } from './fields/NumberField'
+import { SelectField } from './fields/SelectField'
+import { TelField } from './fields/TelField'
+import { ArrayField } from './fields/ArrayField'
+
+// ---- Types -----------------------------------------------------------
+
+interface FieldWrapperProps {
+  field: FieldDefinition
+  prefix: string
+  register: UseFormRegister<Record<string, unknown>>
+  errors: FieldErrors<Record<string, unknown>>
+  store: VisibilityStore
+  control: Control<Record<string, unknown>>
+}
+
+// ---- Helper: resolve dot-notation error path -------------------------
+
+function getNestedError(
+  errors: FieldErrors<Record<string, unknown>>,
+  path: string,
+): FieldErrors<Record<string, unknown>>[string] | undefined {
+  const parts = path.split('.')
+  let current: FieldErrors<Record<string, unknown>> | undefined = errors
+  for (const part of parts) {
+    if (current == null) return undefined
+    const next = current[part]
+    // FieldErrors values can be nested FieldErrors or a FieldError leaf
+    current = next as FieldErrors<Record<string, unknown>> | undefined
+  }
+  return current as FieldErrors<Record<string, unknown>>[string] | undefined
+}
+
+// ---- Inner renderFields (passed as prop to ArrayField) ---------------
+
+export function renderFields(
+  fields: FieldDefinition[],
+  prefix: string,
+  register: UseFormRegister<Record<string, unknown>>,
+  errors: FieldErrors<Record<string, unknown>>,
+  store: VisibilityStore,
+  control: Control<Record<string, unknown>>,
+): React.ReactNode {
+  return fields.map((field) => (
+    <FieldWrapper
+      key={field.name}
+      field={field}
+      prefix={prefix}
+      register={register}
+      errors={errors}
+      store={store}
+      control={control}
+    />
+  ))
+}
+
+// ---- FieldWrapper — gates visibility and dispatches to components ----
+
+function FieldWrapper({
+  field,
+  prefix,
+  register,
+  errors,
+  store,
+  control,
+}: FieldWrapperProps) {
+  const qualifiedName = prefix ? `${prefix}.${field.name}` : field.name
+  const visible = useFieldVisibility(qualifiedName, store)
+
+  if (!visible) return null
+
+  const error = getNestedError(errors, qualifiedName)
+
+  switch (field.type) {
+    case 'text':
+      return (
+        <TextField
+          key={qualifiedName}
+          name={qualifiedName}
+          label={field.label}
+          register={register}
+          error={error}
+        />
+      )
+
+    case 'number':
+      return (
+        <NumberField
+          key={qualifiedName}
+          name={qualifiedName}
+          label={field.label}
+          register={register}
+          error={error}
+        />
+      )
+
+    case 'select':
+      return (
+        <SelectField
+          key={qualifiedName}
+          name={qualifiedName}
+          label={field.label}
+          items={field.items}
+          register={register}
+          error={error}
+        />
+      )
+
+    case 'tel':
+      return (
+        <TelField
+          key={qualifiedName}
+          name={qualifiedName}
+          label={field.label}
+          register={register}
+          error={error}
+        />
+      )
+
+    case 'array':
+      return (
+        <ArrayField
+          key={qualifiedName}
+          name={qualifiedName}
+          label={field.label}
+          itemFields={field.fields ?? []}
+          control={control}
+          register={register}
+          errors={errors}
+          store={store}
+          renderFields={renderFields}
+        />
+      )
+
+    case 'group':
+      return (
+        <fieldset key={qualifiedName}>
+          <legend>{field.label}</legend>
+          {renderFields(field.fields ?? [], qualifiedName, register, errors, store, control)}
+        </fieldset>
+      )
+
+    case 'checkbox':
+    case 'file':
+      // Basic fallback for unsupported types in this PR
+      return (
+        <div key={qualifiedName}>
+          <label htmlFor={qualifiedName}>{field.label}</label>
+          <input
+            id={qualifiedName}
+            type={field.type}
+            {...register(qualifiedName)}
+            aria-invalid={error ? 'true' : 'false'}
+          />
+          {error && (
+            <span id={`${qualifiedName}-error`} role="alert">
+              {error.message}
+            </span>
+          )}
+        </div>
+      )
+
+    default:
+      return (
+        <div key={qualifiedName} role="alert">
+          Unknown field type: {(field as FieldDefinition).type}
+        </div>
+      )
+  }
+}
+
+// ---- FormRenderer ----------------------------------------------------
+
+interface FormRendererProps {
+  fields: FieldDefinition[]
+  register: UseFormRegister<Record<string, unknown>>
+  errors: FieldErrors<Record<string, unknown>>
+  store: VisibilityStore
+  control: Control<Record<string, unknown>>
+}
+
+export function FormRenderer({ fields, register, errors, store, control }: FormRendererProps) {
+  return (
+    <>
+      {renderFields(fields, '', register, errors, store, control)}
+    </>
+  )
+}
