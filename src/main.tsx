@@ -15,28 +15,32 @@ function App() {
 
   return (
     <div>
-      <header style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <strong>Form Engine MVP</strong>
-        <button
-          type="button"
-          onClick={() => setView('demos')}
-          aria-current={view === 'demos' ? 'page' : undefined}
-        >
-          Demos
-        </button>
-        <button
-          type="button"
-          onClick={() => setView('playground')}
-          aria-current={view === 'playground' ? 'page' : undefined}
-        >
-          Playground
-        </button>
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6 shadow-sm">
+        <strong className="text-lg font-semibold text-gray-900">Form Engine MVP</strong>
+        <nav className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setView('demos')}
+            aria-current={view === 'demos' ? 'page' : undefined}
+            className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${view === 'demos' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'}`}
+          >
+            Demos
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('playground')}
+            aria-current={view === 'playground' ? 'page' : undefined}
+            className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${view === 'playground' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'}`}
+          >
+            Playground
+          </button>
+        </nav>
       </header>
 
-      <main style={{ minHeight: 'calc(100vh - 49px)' }}>
+      <main className="bg-gray-50 min-h-[calc(100vh-57px)]">
         {view === 'demos' && <DemoLanding />}
         {view === 'playground' && (
-          <Suspense fallback={<div style={{ padding: '2rem' }}>Loading playground...</div>}>
+          <Suspense fallback={<div className="p-8 text-gray-500 text-sm">Loading playground...</div>}>
             <Playground />
           </Suspense>
         )}

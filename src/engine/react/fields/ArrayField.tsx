@@ -52,13 +52,26 @@ export function ArrayField({
     })
   }
 
+  const atMax = maxItems !== undefined && fields.length >= maxItems
+
   return (
-    <fieldset>
-      <legend>{label}</legend>
-      <div ref={listRef}>
+    <fieldset className="border border-gray-200 rounded-lg p-4 mb-4">
+      <legend className="text-sm font-semibold text-gray-700 px-2">{label}</legend>
+      <div ref={listRef} className="space-y-3">
         {fields.map((field, index) => (
-          <div key={field.id} data-array-item>
-            <strong>{label} {index + 1}</strong>
+          <div key={field.id} data-array-item className="bg-gray-50 rounded-md p-3 border border-gray-100">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                {label} {index + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => remove(index)}
+                className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
+              >
+                Remove
+              </button>
+            </div>
             {renderFields(
               itemFields,
               `${name}.${index}`,
@@ -67,19 +80,17 @@ export function ArrayField({
               store,
               control,
             )}
-            <button type="button" onClick={() => remove(index)}>
-              Remove
-            </button>
           </div>
         ))}
       </div>
       <button
         type="button"
         onClick={handleAdd}
-        disabled={maxItems !== undefined && fields.length >= maxItems}
-        aria-disabled={maxItems !== undefined && fields.length >= maxItems}
+        disabled={atMax}
+        aria-disabled={atMax}
+        className={`mt-3 text-sm font-medium flex items-center gap-1 transition-colors ${atMax ? 'text-gray-300 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-800'}`}
       >
-        Add {label}
+        + Add {label}
       </button>
     </fieldset>
   )

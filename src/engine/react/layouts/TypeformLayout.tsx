@@ -46,25 +46,52 @@ export function TypeformLayout({
     }
   }
 
+  const progressPct = ((activeIndex + 1) / fields.length) * 100
+
   return (
-    <div onKeyDown={handleKeyDown} ref={containerRef}>
-      <div aria-label="Progress">
-        {activeIndex + 1}/{fields.length}
+    <div onKeyDown={handleKeyDown} ref={containerRef} className="relative">
+      {/* Fixed progress bar at top */}
+      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-10">
+        <div
+          className="h-1 bg-indigo-600 transition-all duration-300"
+          style={{ width: `${progressPct}%` }}
+          aria-label="Progress"
+        />
       </div>
-      <div key={activeField.name}>
-        {renderFields([activeField], '', register, errors, store, control)}
-      </div>
-      <div>
-        {activeIndex > 0 && (
-          <button type="button" onClick={() => setActiveIndex((i) => i - 1)}>
-            Back
-          </button>
-        )}
-        {activeIndex < fields.length - 1 && (
-          <button type="button" onClick={() => setActiveIndex((i) => i + 1)}>
-            Next
-          </button>
-        )}
+
+      <div className="min-h-[60vh] flex flex-col justify-center max-w-lg mx-auto px-4 py-16">
+        <p className="text-sm text-gray-400 mb-6 text-center">
+          {activeIndex + 1} / {fields.length}
+        </p>
+
+        <div key={activeField.name}>
+          {renderFields([activeField], '', register, errors, store, control)}
+        </div>
+
+        <p className="text-xs text-gray-400 mt-4">
+          Press <kbd className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs font-mono">Enter ↵</kbd> to continue
+        </p>
+
+        <div className="flex gap-3 mt-6">
+          {activeIndex > 0 && (
+            <button
+              type="button"
+              onClick={() => setActiveIndex((i) => i - 1)}
+              className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            >
+              Back
+            </button>
+          )}
+          {activeIndex < fields.length - 1 && (
+            <button
+              type="button"
+              onClick={() => setActiveIndex((i) => i + 1)}
+              className="px-4 py-2 rounded-full text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+            >
+              Next
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

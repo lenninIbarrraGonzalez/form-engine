@@ -31,15 +31,16 @@ export function DemoLanding() {
 
   return (
     <div>
-      <header>
-        <h1>Form Engine Demos</h1>
-        <nav aria-label="Demo navigation">
+      <header className="px-6 py-8 bg-white border-b border-gray-200">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Form Engine Demos</h1>
+        <nav aria-label="Demo navigation" className="flex gap-2 flex-wrap">
           {DEMOS.map(({ id, label }) => (
             <button
               key={id}
               type="button"
               onClick={() => setActiveDemo(id)}
               aria-current={activeDemo === id ? 'page' : undefined}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${activeDemo === id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               {label}
             </button>
@@ -47,9 +48,9 @@ export function DemoLanding() {
         </nav>
       </header>
 
-      <main>
+      <main className="px-6 py-8 max-w-2xl">
         {activeDemo === null ? (
-          <p>Select a demo above to get started.</p>
+          <p className="text-gray-500 text-sm">Select a demo above to get started.</p>
         ) : (
           <DemoContent id={activeDemo} />
         )}

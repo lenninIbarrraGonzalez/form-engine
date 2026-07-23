@@ -156,9 +156,14 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
   }
 
   return (
-    <form onSubmit={handleFormSubmit} noValidate>
+    <form onSubmit={handleFormSubmit} noValidate className="space-y-2">
       {renderBody()}
-      <button type="submit">Submit</button>
+      <button
+        type="submit"
+        className="mt-6 w-full bg-indigo-600 text-white font-medium py-2.5 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
+      >
+        Submit
+      </button>
     </form>
   )
 }

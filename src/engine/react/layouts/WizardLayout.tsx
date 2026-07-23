@@ -19,11 +19,20 @@ export function WizardLayout({ steps, register, errors, store, control }: Wizard
   const total = steps.length
   const step = steps[currentStep]
 
+  const progressPct = ((currentStep + 1) / total) * 100
+
   return (
-    <div>
-      <div aria-label="Progress">
-        Step {currentStep + 1} of {total}
+    <div className="space-y-6">
+      <div>
+        <p className="text-xs text-gray-500 mb-1.5">Step {currentStep + 1} of {total}</p>
+        <div className="bg-gray-200 rounded-full h-1.5" aria-label="Progress">
+          <div
+            className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
       </div>
+
       <FormRenderer
         fields={step.fields}
         register={register}
@@ -31,14 +40,25 @@ export function WizardLayout({ steps, register, errors, store, control }: Wizard
         store={store}
         control={control}
       />
-      <div>
-        {currentStep > 0 && (
-          <button type="button" onClick={() => setCurrentStep((s) => s - 1)}>
+
+      <div className="flex justify-between mt-6">
+        {currentStep > 0 ? (
+          <button
+            type="button"
+            onClick={() => setCurrentStep((s) => s - 1)}
+            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
             Back
           </button>
+        ) : (
+          <span />
         )}
         {currentStep < total - 1 && (
-          <button type="button" onClick={() => setCurrentStep((s) => s + 1)}>
+          <button
+            type="button"
+            onClick={() => setCurrentStep((s) => s + 1)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
             Next
           </button>
         )}

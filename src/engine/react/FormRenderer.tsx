@@ -156,16 +156,19 @@ function FieldWrapper({
     case 'file':
       // Basic fallback for unsupported types in this PR
       return (
-        <div key={qualifiedName}>
-          <label htmlFor={qualifiedName}>{field.label}</label>
+        <div key={qualifiedName} className="mb-4">
+          <label htmlFor={qualifiedName} className="block text-sm font-medium text-gray-700 mb-1">
+            {field.label}
+          </label>
           <input
             id={qualifiedName}
             type={field.type}
             {...register(qualifiedName)}
             aria-invalid={error ? 'true' : 'false'}
+            className="text-sm text-gray-700"
           />
           {error && (
-            <span id={`${qualifiedName}-error`} role="alert">
+            <span id={`${qualifiedName}-error`} role="alert" className="block text-xs text-red-600 mt-1">
               {error.message}
             </span>
           )}

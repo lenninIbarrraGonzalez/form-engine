@@ -60,14 +60,14 @@ export function Playground() {
   const errorIssues = hasError && result.errorType === 'schema' ? result.issues : null
 
   return (
-    <div style={{ display: 'flex', height: '100vh', gap: '0' }}>
+    <div className="flex h-screen">
       {/* Left panel — Monaco editor */}
-      <div style={{ flex: '0 0 50%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e5e7eb' }}>
-        <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>
+      <div className="flex flex-col w-1/2 border-r border-gray-200">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700">
           Schema Editor
         </div>
-        <div style={{ flex: 1 }}>
-          <Suspense fallback={<div style={{ padding: '1rem' }}>Loading editor...</div>}>
+        <div className="flex-1 min-h-0">
+          <Suspense fallback={<div className="p-4 text-sm text-gray-500">Loading editor...</div>}>
             <MonacoEditor value={editorText} onChange={handleEditorChange} />
           </Suspense>
         </div>
@@ -76,25 +76,19 @@ export function Playground() {
           <div
             aria-live="polite"
             role="status"
-            style={{
-              padding: '0.75rem 1rem',
-              background: '#fef2f2',
-              borderTop: '1px solid #fecaca',
-              maxHeight: '8rem',
-              overflowY: 'auto',
-            }}
+            className="px-4 py-3 bg-red-50 border-t border-red-200 max-h-32 overflow-y-auto"
           >
-            <p style={{ fontWeight: 600, color: '#dc2626', marginBottom: '0.25rem' }}>
+            <p className="font-semibold text-red-600 mb-1 text-sm">
               {result.errorType === 'parse' && 'JSON Syntax Error'}
               {result.errorType === 'schema' && 'Schema Validation Error'}
               {result.errorType === 'cycle' && 'Dependency Cycle Detected'}
             </p>
-            <p style={{ color: '#7f1d1d', fontSize: '0.875rem' }}>{errorMessage}</p>
+            <p className="text-red-900 text-sm">{errorMessage}</p>
             {errorIssues && errorIssues.length > 0 && (
-              <ul style={{ marginTop: '0.25rem', paddingLeft: '1rem', fontSize: '0.8rem', color: '#7f1d1d' }}>
+              <ul className="mt-1 pl-4 text-xs text-red-900 list-disc">
                 {errorIssues.map((issue, i) => (
                   <li key={i}>
-                    <code>{issue.path}</code>: {issue.message}
+                    <code className="font-mono">{issue.path}</code>: {issue.message}
                   </li>
                 ))}
               </ul>
@@ -104,8 +98,8 @@ export function Playground() {
       </div>
 
       {/* Right panel — live form preview */}
-      <div style={{ flex: '1', overflowY: 'auto', padding: '1rem' }}>
-        <div style={{ marginBottom: '0.75rem', fontWeight: 600, borderBottom: '1px solid #e5e7eb', paddingBottom: '0.75rem' }}>
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="text-sm font-semibold text-gray-700 pb-3 mb-4 border-b border-gray-200">
           Live Preview
         </div>
         {validDefinition ? (
@@ -115,7 +109,7 @@ export function Playground() {
             onSubmit={(data) => console.log('Playground submit:', data)}
           />
         ) : (
-          <p style={{ color: '#6b7280' }}>Enter a valid schema to preview the form.</p>
+          <p className="text-gray-400 text-sm">Enter a valid schema to preview the form.</p>
         )}
       </div>
     </div>
