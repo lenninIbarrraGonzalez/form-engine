@@ -44,4 +44,28 @@ describe('FormErrorBoundary', () => {
     )
     expect(screen.getByRole('alert').textContent).toMatch(/something went wrong/i)
   })
+
+  it('invokes onError with the thrown error for observability', () => {
+    const onError = vi.fn()
+    render(
+      <FormErrorBoundary onError={onError}>
+        <BrokenComponent />
+      </FormErrorBoundary>,
+    )
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(onError.mock.calls[0][0]).toBeInstanceOf(Error)
+  })
+
+  it('logs the error so production failures are not silent', () => {
+    render(
+      <FormErrorBoundary>
+        <BrokenComponent />
+      </FormErrorBoundary>,
+    )
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[FormErrorBoundary]',
+      expect.any(Error),
+      expect.anything(),
+    )
+  })
 })

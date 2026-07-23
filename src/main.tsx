@@ -49,7 +49,12 @@ function App() {
   )
 }
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Form Engine failed to mount: no element with id "root" was found in the document.')
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <App />
   </StrictMode>,

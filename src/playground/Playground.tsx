@@ -15,6 +15,10 @@ const MonacoEditor = lazy(() =>
 
 const DEFAULT_SCHEMA_STRING = JSON.stringify(creditSchemaRaw, null, 2)
 
+// Parse the starter schema once at module load — reused by both initial states
+// so the pipeline (parse → validate → build graph) doesn't run twice on mount.
+const DEFAULT_RESULT = parseAndValidateSchema(DEFAULT_SCHEMA_STRING)
+
 // ---- Debounce hook ---------------------------------------------------
 
 function useDebounce<T>(value: T, delayMs: number): T {
@@ -33,13 +37,11 @@ export function Playground() {
   const [editorText, setEditorText] = useState(DEFAULT_SCHEMA_STRING)
   const debouncedText = useDebounce(editorText, 300)
 
-  const [result, setResult] = useState<PlaygroundResult>(() =>
-    parseAndValidateSchema(DEFAULT_SCHEMA_STRING),
+  const [result, setResult] = useState<PlaygroundResult>(DEFAULT_RESULT)
+  const [validDefinition, setValidDefinition] = useState<FormDefinition | null>(
+    DEFAULT_RESULT.ok ? DEFAULT_RESULT.definition : null,
   )
-  const [validDefinition, setValidDefinition] = useState<FormDefinition | null>(() => {
-    const r = parseAndValidateSchema(DEFAULT_SCHEMA_STRING)
-    return r.ok ? r.definition : null
-  })
+  const [submitted, setSubmitted] = useState<Record<string, unknown> | null>(null)
 
   // Re-parse whenever debounced text changes
   useEffect(() => {
@@ -103,11 +105,25 @@ export function Playground() {
           Live Preview
         </div>
         {validDefinition ? (
-          <FormEngine
-            key={JSON.stringify(validDefinition)}
-            schema={validDefinition}
-            onSubmit={(data) => console.log('Playground submit:', data)}
-          />
+          <>
+            <FormEngine
+              key={JSON.stringify(validDefinition)}
+              schema={validDefinition}
+              onSubmit={(data) => setSubmitted(data)}
+            />
+            {submitted && (
+              <div
+                aria-live="polite"
+                role="status"
+                className="mt-6 rounded-md border border-green-200 bg-green-50 px-4 py-3"
+              >
+                <p className="text-sm font-semibold text-green-700 mb-1">Form submitted</p>
+                <pre className="text-xs text-green-900 overflow-x-auto">
+                  {JSON.stringify(submitted, null, 2)}
+                </pre>
+              </div>
+            )}
+          </>
         ) : (
           <p className="text-gray-400 text-sm">Enter a valid schema to preview the form.</p>
         )}

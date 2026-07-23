@@ -154,7 +154,7 @@ function FieldWrapper({
 
     case 'checkbox':
     case 'file':
-      // Basic fallback for unsupported types in this PR
+      // Native input fallback for checkbox and file types.
       return (
         <div key={qualifiedName} className="mb-4">
           <label htmlFor={qualifiedName} className="block text-sm font-medium text-gray-700 mb-1">
@@ -188,8 +188,10 @@ function FieldWrapper({
           />
         )
       }
+      // Not a live-region alert — this is a static render fallback, not an
+      // event the user must be interrupted for. Keep it visible but non-assertive.
       return (
-        <div key={qualifiedName} role="alert">
+        <div key={qualifiedName} className="text-xs text-red-600">
           Unknown field type: {(field as FieldDefinition).type}
         </div>
       )

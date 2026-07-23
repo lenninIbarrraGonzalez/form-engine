@@ -1,7 +1,9 @@
-import { Component, type ReactNode } from 'react'
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 interface Props {
   children: ReactNode
+  /** Optional hook to forward caught errors to a reporting service (Sentry, etc.). */
+  onError?: (error: Error, info: ErrorInfo) => void
 }
 
 interface State {
@@ -16,6 +18,12 @@ export class FormErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(): State {
     return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    // Always log so failures are observable; forward to a consumer handler if given.
+    console.error('[FormErrorBoundary]', error, info.componentStack)
+    this.props.onError?.(error, info)
   }
 
   render() {

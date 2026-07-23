@@ -397,7 +397,7 @@ describe('FormEngine', () => {
   })
 
   describe('field registry', () => {
-    it('renders unknown field type with role="alert" error message', () => {
+    it('renders a visible (non-assertive) fallback message for an unknown field type', () => {
       const UNKNOWN_TYPE_SCHEMA: FormDefinition = {
         title: 'Unknown Type Form',
         fields: [
@@ -406,8 +406,9 @@ describe('FormEngine', () => {
         ],
       }
       render(<FormEngine schema={UNKNOWN_TYPE_SCHEMA} onSubmit={vi.fn()} />)
-      const alert = screen.getByRole('alert')
-      expect(alert.textContent).toContain('signature')
+      // Message is shown to the user but must NOT hijack the screen reader as an alert.
+      expect(screen.getByText(/unknown field type: signature/i)).toBeInTheDocument()
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 
     it('renders a custom field component registered via registerField()', () => {
