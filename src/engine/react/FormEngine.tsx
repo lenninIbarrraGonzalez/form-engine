@@ -60,6 +60,7 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
     watch,
     control,
     setFocus,
+    trigger,
     formState: { errors },
   } = useForm<Record<string, unknown>>({
     resolver,
@@ -107,6 +108,7 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
           errors={errors}
           store={store}
           control={control}
+          trigger={trigger}
         />
       )
     }

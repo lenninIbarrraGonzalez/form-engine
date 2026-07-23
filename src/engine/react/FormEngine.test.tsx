@@ -276,6 +276,7 @@ describe('FormEngine', () => {
       const user = userEvent.setup()
       render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
 
+      await user.type(screen.getByLabelText('First Name'), 'Ada')
       await user.click(screen.getByRole('button', { name: /next/i }))
 
       await waitFor(() => {
@@ -358,15 +359,34 @@ describe('FormEngine', () => {
       expect(screen.queryByLabelText('Last Name')).not.toBeInTheDocument()
     })
 
-    it('wizard layout advances to step 2 when Next is clicked', async () => {
+    it('wizard layout advances to step 2 when the current step is valid and Next is clicked', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+
+      await user.type(screen.getByLabelText('First Name'), 'Ada')
+      await user.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(await screen.findByLabelText('Last Name')).toBeInTheDocument()
+      expect(screen.queryByLabelText('First Name')).not.toBeInTheDocument()
+      expect(screen.getByText(/step 2 of 2/i)).toBeInTheDocument()
+    })
+
+    it('wizard layout blocks Next while a required field in the current step is empty', async () => {
       const user = userEvent.setup()
       render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
 
       await user.click(screen.getByRole('button', { name: /next/i }))
 
-      expect(screen.getByLabelText('Last Name')).toBeInTheDocument()
-      expect(screen.queryByLabelText('First Name')).not.toBeInTheDocument()
-      expect(screen.getByText(/step 2 of 2/i)).toBeInTheDocument()
+      // Still on step 1 — the required firstName was never filled.
+      expect(screen.getByLabelText('First Name')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Last Name')).not.toBeInTheDocument()
+      expect(screen.getByText(/step 1 of 2/i)).toBeInTheDocument()
+    })
+
+    it('one-field-per-screen layout shows an empty state instead of crashing when there are no fields', () => {
+      const EMPTY_SCHEMA: FormDefinition = { title: 'Empty', fields: [] }
+      render(<FormEngine schema={EMPTY_SCHEMA} layout="one-field-per-screen" onSubmit={vi.fn()} />)
+      expect(screen.getByText(/no fields/i)).toBeInTheDocument()
     })
 
     it('flat layout (default) shows all fields from all steps', () => {

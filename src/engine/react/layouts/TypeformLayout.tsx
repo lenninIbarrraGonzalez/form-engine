@@ -47,6 +47,11 @@ export function TypeformLayout({
     }
   }
 
+  // Guard the empty case before any index math or dereference of activeField.
+  if (fields.length === 0) {
+    return <p className="text-sm text-gray-400">No fields to display.</p>
+  }
+
   const progressPct = ((activeIndex + 1) / fields.length) * 100
 
   return (

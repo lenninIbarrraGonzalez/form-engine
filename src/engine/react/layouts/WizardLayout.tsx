@@ -1,7 +1,12 @@
 // WizardLayout — multi-step form layout strategy over FormRenderer.
 // Each step is rendered one at a time with forward/back navigation and a progress indicator.
 import { useState } from 'react'
-import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormTrigger,
+} from 'react-hook-form'
 import type { StepDefinition } from '../../schema/types'
 import type { VisibilityStore } from '../../store/visibility-store'
 import { FormRenderer } from '../FormRenderer'
@@ -12,14 +17,23 @@ interface WizardLayoutProps {
   errors: FieldErrors<Record<string, unknown>>
   store: VisibilityStore
   control: Control<Record<string, unknown>>
+  trigger: UseFormTrigger<Record<string, unknown>>
 }
 
-export function WizardLayout({ steps, register, errors, store, control }: WizardLayoutProps) {
+export function WizardLayout({ steps, register, errors, store, control, trigger }: WizardLayoutProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const total = steps.length
   const step = steps[currentStep]
 
   const progressPct = ((currentStep + 1) / total) * 100
+
+  // Validate only the current step's fields before advancing, so users get
+  // errors where they can see them instead of all at once on final submit.
+  async function handleNext() {
+    const fieldNames = step.fields.map((field) => field.name)
+    const isStepValid = await trigger(fieldNames)
+    if (isStepValid) setCurrentStep((s) => s + 1)
+  }
 
   return (
     <div className="space-y-6">
@@ -63,7 +77,7 @@ export function WizardLayout({ steps, register, errors, store, control }: Wizard
         {currentStep < total - 1 && (
           <button
             type="button"
-            onClick={() => setCurrentStep((s) => s + 1)}
+            onClick={handleNext}
             className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Next
