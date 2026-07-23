@@ -9,6 +9,8 @@ export interface DependencyGraph {
   reverse: Map<string, Set<string>>
   /** All field names known to the graph */
   nodes: Set<string>
+  /** showIf condition stored per dependent field name (for condition-evaluator) */
+  fieldConditions: Map<string, ShowIfCondition>
 }
 
 export class CyclicDependencyError extends Error {
@@ -34,6 +36,7 @@ function collectEdges(
   edges: Map<string, Set<string>>,
   reverse: Map<string, Set<string>>,
   nodes: Set<string>,
+  fieldConditions: Map<string, ShowIfCondition>,
   prefix: string = '',
 ): void {
   for (const field of fields) {
@@ -41,6 +44,7 @@ function collectEdges(
     nodes.add(qualifiedName)
 
     if (field.showIf) {
+      fieldConditions.set(qualifiedName, field.showIf)
       for (const ref of extractFieldRefs(field.showIf)) {
         if (!edges.has(ref)) edges.set(ref, new Set())
         edges.get(ref)!.add(qualifiedName)
@@ -51,7 +55,7 @@ function collectEdges(
     }
 
     if (field.fields && field.fields.length > 0) {
-      collectEdges(field.fields, edges, reverse, nodes, qualifiedName)
+      collectEdges(field.fields, edges, reverse, nodes, fieldConditions, qualifiedName)
     }
   }
 }
@@ -99,19 +103,20 @@ export function buildDependencyGraph(definition: FormDefinition): DependencyGrap
   const edges = new Map<string, Set<string>>()
   const reverse = new Map<string, Set<string>>()
   const nodes = new Set<string>()
+  const fieldConditions = new Map<string, ShowIfCondition>()
 
   const allFields = [
     ...(definition.fields ?? []),
     ...(definition.steps?.flatMap((s) => s.fields) ?? []),
   ]
 
-  collectEdges(allFields, edges, reverse, nodes)
+  collectEdges(allFields, edges, reverse, nodes, fieldConditions)
 
   // Extend node set to include edge sources that are referenced but not declared as fields
   const allNodes = new Set([...nodes, ...edges.keys()])
   runDfsOnGraph(edges, allNodes)
 
-  return { edges, reverse, nodes }
+  return { edges, reverse, nodes, fieldConditions }
 }
 
 /**
