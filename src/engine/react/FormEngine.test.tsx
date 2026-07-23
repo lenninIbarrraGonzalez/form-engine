@@ -249,6 +249,101 @@ describe('FormEngine', () => {
         expect(errorEl).not.toBeNull()
       })
     })
+
+    // A1 — form-level error announcement
+    it('announces validation error count in a live region after failed submit', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={TEXT_SCHEMA} onSubmit={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: /submit/i }))
+
+      await waitFor(() => {
+        const status = screen.getByRole('status')
+        expect(status.textContent).toMatch(/1 error/i)
+      })
+    })
+
+    // A2 — wizard progress bar ARIA attributes
+    it('wizard progress bar has role="progressbar" with aria-valuenow/min/max', () => {
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+      const bar = screen.getByRole('progressbar')
+      expect(bar).toHaveAttribute('aria-valuenow', '1')
+      expect(bar).toHaveAttribute('aria-valuemin', '1')
+      expect(bar).toHaveAttribute('aria-valuemax', '2')
+    })
+
+    it('wizard progress bar aria-valuenow updates when advancing steps', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: /next/i }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
+      })
+    })
+  })
+
+  describe('array field a11y', () => {
+    // A3 — remove button contextual aria-label
+    it('remove button has contextual aria-label identifying the item', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={ARRAY_SCHEMA} onSubmit={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: /add/i }))
+
+      await waitFor(() => {
+        const removeBtn = screen.getByRole('button', { name: /remove references 1/i })
+        expect(removeBtn).toBeInTheDocument()
+      })
+    })
+
+    // A4 — live region announces item added
+    it('announces item addition in a live region', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={ARRAY_SCHEMA} onSubmit={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: /add/i }))
+
+      await waitFor(() => {
+        const statuses = screen.getAllByRole('status')
+        const hasAnnouncement = statuses.some((el) =>
+          /references 1 added/i.test(el.textContent ?? ''),
+        )
+        expect(hasAnnouncement).toBe(true)
+      })
+    })
+  })
+
+  describe('typeform layout a11y', () => {
+    // A5 — Enter in textarea does not advance to next field
+    it('Enter key in a textarea does not advance to next field', async () => {
+      function TextareaField({ name }: { name: string }) {
+        return <textarea data-testid="textarea-field" name={name} />
+      }
+      registerField('textarea-custom', TextareaField as FieldComponent)
+
+      const TYPEFORM_SCHEMA: FormDefinition = {
+        title: 'Typeform',
+        fields: [
+          // @ts-expect-error custom type not in FieldType union
+          { name: 'comment', type: 'textarea-custom', label: 'Comment' },
+          { name: 'name', type: 'text', label: 'Name' },
+        ],
+      }
+
+      const user = userEvent.setup()
+      render(<FormEngine schema={TYPEFORM_SCHEMA} layout="one-field-per-screen" onSubmit={vi.fn()} />)
+
+      expect(screen.getByTestId('textarea-field')).toBeInTheDocument()
+
+      await user.click(screen.getByTestId('textarea-field'))
+      await user.keyboard('{Enter}')
+
+      // Must still be on first field — textarea Enter should not advance
+      expect(screen.getByTestId('textarea-field')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
+    })
   })
 
   describe('layout prop', () => {

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useFieldArray, type Control, type UseFormRegister, type FieldErrors } from 'react-hook-form'
 import type { FieldDefinition } from '../../schema/types'
 import type { VisibilityStore } from '../../store/visibility-store'
@@ -39,10 +39,14 @@ export function ArrayField({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, append, remove } = useFieldArray({ control: control as any, name })
   const listRef = useRef<HTMLDivElement>(null)
+  const [announcement, setAnnouncement] = useState('')
 
   function handleAdd() {
+    const newIndex = fields.length + 1
     append({})
-    // Focus the first focusable input in the newly appended item after render.
+    // A4: announce item addition to screen readers
+    setAnnouncement(`${label} ${newIndex} added`)
+    // A3/focus: move to first input in the new item after render
     requestAnimationFrame(() => {
       if (!listRef.current) return
       const items = listRef.current.querySelectorAll<HTMLElement>('[data-array-item]')
@@ -57,6 +61,10 @@ export function ArrayField({
   return (
     <fieldset className="border border-gray-200 rounded-lg p-4 mb-4">
       <legend className="text-sm font-semibold text-gray-700 px-2">{label}</legend>
+      {/* A4: live region for screen reader announcements */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {announcement}
+      </div>
       <div ref={listRef} className="space-y-3">
         {fields.map((field, index) => (
           <div key={field.id} data-array-item className="bg-gray-50 rounded-md p-3 border border-gray-100">
@@ -64,9 +72,11 @@ export function ArrayField({
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 {label} {index + 1}
               </span>
+              {/* A3: contextual aria-label identifies which item is being removed */}
               <button
                 type="button"
                 onClick={() => remove(index)}
+                aria-label={`Remove ${label} ${index + 1}`}
                 className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
               >
                 Remove

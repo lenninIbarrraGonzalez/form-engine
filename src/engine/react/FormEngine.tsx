@@ -150,9 +150,17 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
     )
   }
 
+  const errorCount = Object.keys(errors).length
+
   return (
     <FormErrorBoundary>
       <form onSubmit={handleFormSubmit} noValidate className="space-y-2">
+        {/* A1: polite live region announces total error count after submit */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {errorCount > 0
+            ? `${errorCount} ${errorCount === 1 ? 'error' : 'errors'} found. Please review the form.`
+            : ''}
+        </div>
         {renderBody()}
         <button
           type="submit"

@@ -25,7 +25,14 @@ export function WizardLayout({ steps, register, errors, store, control }: Wizard
     <div className="space-y-6">
       <div>
         <p className="text-xs text-gray-500 mb-1.5">Step {currentStep + 1} of {total}</p>
-        <div className="bg-gray-200 rounded-full h-1.5" aria-label="Progress">
+        <div
+          role="progressbar"
+          aria-label={`Step ${currentStep + 1} of ${total}`}
+          aria-valuenow={currentStep + 1}
+          aria-valuemin={1}
+          aria-valuemax={total}
+          className="bg-gray-200 rounded-full h-1.5"
+        >
           <div
             className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${progressPct}%` }}

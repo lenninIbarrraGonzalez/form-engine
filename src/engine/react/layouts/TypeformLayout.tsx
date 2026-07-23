@@ -37,7 +37,8 @@ export function TypeformLayout({
   }, [activeIndex])
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') {
+    // A5: Enter inside a textarea should not advance — let the user type newlines
+    if (e.key === 'Enter' && !(e.target instanceof HTMLTextAreaElement)) {
       e.preventDefault()
       if (activeIndex < fields.length - 1) setActiveIndex((i) => i + 1)
     } else if (e.key === 'Tab' && e.shiftKey) {
@@ -51,11 +52,17 @@ export function TypeformLayout({
   return (
     <div onKeyDown={handleKeyDown} ref={containerRef} className="relative">
       {/* Fixed progress bar at top */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-10">
+      <div
+        role="progressbar"
+        aria-label={`Question ${activeIndex + 1} of ${fields.length}`}
+        aria-valuenow={activeIndex + 1}
+        aria-valuemin={1}
+        aria-valuemax={fields.length}
+        className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-10"
+      >
         <div
           className="h-1 bg-indigo-600 transition-all duration-300"
           style={{ width: `${progressPct}%` }}
-          aria-label="Progress"
         />
       </div>
 
