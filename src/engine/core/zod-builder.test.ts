@@ -252,3 +252,31 @@ describe('buildZodSchema — number required', () => {
     expect(result.success).toBe(true)
   })
 })
+
+// ---- Scenario: required wins over optional (mutually exclusive flags) -
+
+describe('buildZodSchema — required takes precedence over optional', () => {
+  it('rejects a missing number when both required and optional are set', () => {
+    const form = makeForm([
+      { name: 'age', type: 'number', label: 'Age', validations: { required: true, optional: true } },
+    ])
+    const schema = buildZodSchema(form, {})
+    expect(schema.safeParse({}).success).toBe(false)
+  })
+
+  it('accepts a present number when required', () => {
+    const form = makeForm([
+      { name: 'age', type: 'number', label: 'Age', validations: { required: true } },
+    ])
+    const schema = buildZodSchema(form, {})
+    expect(schema.safeParse({ age: 25 }).success).toBe(true)
+  })
+
+  it('rejects a missing text when both required and optional are set', () => {
+    const form = makeForm([
+      { name: 'name', type: 'text', label: 'Name', validations: { required: true, optional: true } },
+    ])
+    const schema = buildZodSchema(form, {})
+    expect(schema.safeParse({}).success).toBe(false)
+  })
+})

@@ -274,3 +274,43 @@ describe('validateFormDefinition', () => {
     })
   })
 })
+
+// ---- Scenario: pattern must be a safe, compilable regex --------------
+
+describe('validateFormDefinition — pattern safety', () => {
+  it('rejects a pattern that is not a valid regular expression', () => {
+    const def = {
+      title: 'T',
+      fields: [{ name: 'f', type: 'text', label: 'F', validations: { pattern: '(' } }],
+    }
+    expect(() => validateFormDefinition(def)).toThrow(FormDefinitionError)
+  })
+
+  it('rejects a pattern with nested quantifiers (ReDoS risk)', () => {
+    const def = {
+      title: 'T',
+      fields: [{ name: 'f', type: 'text', label: 'F', validations: { pattern: '(a+)+$' } }],
+    }
+    expect(() => validateFormDefinition(def)).toThrow(FormDefinitionError)
+  })
+
+  it('accepts a reasonable, safe pattern', () => {
+    const def = {
+      title: 'T',
+      fields: [{ name: 'f', type: 'text', label: 'F', validations: { pattern: '^[0-9]{3}-[0-9]{4}$' } }],
+    }
+    expect(() => validateFormDefinition(def)).not.toThrow()
+  })
+})
+
+// ---- Scenario: required and optional are mutually exclusive ----------
+
+describe('validateFormDefinition — required/optional exclusivity', () => {
+  it('rejects a field marked both required and optional', () => {
+    const def = {
+      title: 'T',
+      fields: [{ name: 'f', type: 'text', label: 'F', validations: { required: true, optional: true } }],
+    }
+    expect(() => validateFormDefinition(def)).toThrow(FormDefinitionError)
+  })
+})

@@ -63,19 +63,46 @@ const ShowIfConditionSchema: z.ZodType<ShowIfConditionInput> = z.lazy(() =>
   ]),
 )
 
+// ---- Regex pattern safety --------------------------------------------
+
+// Conservative ReDoS heuristic: reject a quantified group whose body itself
+// contains a quantifier (e.g. `(a+)+`, `(a*)*`, `(.+)+`). These constructs are
+// the classic source of catastrophic backtracking. It is intentionally strict
+// rather than exhaustive — better to reject a rare safe pattern than ship a DoS.
+const NESTED_QUANTIFIER = /\([^)]*[+*][^)]*\)[+*]/
+
+function isSafePattern(pattern: string): boolean {
+  if (NESTED_QUANTIFIER.test(pattern)) return false
+  try {
+    new RegExp(pattern)
+    return true
+  } catch {
+    return false
+  }
+}
+
 // ---- Validation rules schema ------------------------------------------
 
-const ValidationDefSchema = z.object({
-  required: z.boolean().optional(),
-  optional: z.boolean().optional(),
-  min: z.number().optional(),
-  max: z.number().optional(),
-  minLength: z.number().optional(),
-  maxLength: z.number().optional(),
-  pattern: z.string().optional(),
-  minItems: z.number().optional(),
-  maxItems: z.number().optional(),
-})
+const ValidationDefSchema = z
+  .object({
+    required: z.boolean().optional(),
+    optional: z.boolean().optional(),
+    min: z.number().optional(),
+    max: z.number().optional(),
+    minLength: z.number().optional(),
+    maxLength: z.number().optional(),
+    pattern: z
+      .string()
+      .max(200, 'pattern must be at most 200 characters')
+      .refine(isSafePattern, 'pattern must be a safe, compilable regular expression')
+      .optional(),
+    minItems: z.number().optional(),
+    maxItems: z.number().optional(),
+  })
+  .refine((v) => !(v.required === true && v.optional === true), {
+    message: 'A field cannot be both required and optional',
+    path: ['required'],
+  })
 
 // ---- Field type schema ------------------------------------------------
 

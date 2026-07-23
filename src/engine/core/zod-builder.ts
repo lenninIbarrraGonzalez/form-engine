@@ -12,6 +12,9 @@ import type { VisibilityMap } from './condition-evaluator'
  */
 export function buildZodField(field: FieldDefinition): z.ZodTypeAny {
   const { type, validations: v = {} } = field
+  // `required` and `optional` are mutually exclusive; when both are present
+  // (which meta-schema validation rejects) required wins here as a safety net.
+  const isOptional = v.optional === true && v.required !== true
 
   switch (type) {
     case 'text':
@@ -21,19 +24,19 @@ export function buildZodField(field: FieldDefinition): z.ZodTypeAny {
       if (v.minLength !== undefined) schema = schema.min(v.minLength)
       if (v.maxLength !== undefined) schema = schema.max(v.maxLength)
       if (v.pattern) schema = schema.regex(new RegExp(v.pattern))
-      return v.optional ? schema.optional() : schema
+      return isOptional ? schema.optional() : schema
     }
 
     case 'number': {
       let schema = z.number()
       if (v.min !== undefined) schema = schema.min(v.min)
       if (v.max !== undefined) schema = schema.max(v.max)
-      return v.optional ? schema.optional() : schema
+      return isOptional ? schema.optional() : schema
     }
 
     case 'select': {
       const base = z.string()
-      return v.optional ? base.optional() : base
+      return isOptional ? base.optional() : base
     }
 
     case 'checkbox':
@@ -48,7 +51,7 @@ export function buildZodField(field: FieldDefinition): z.ZodTypeAny {
       let schema = z.array(z.unknown())
       if (v.minItems !== undefined) schema = schema.min(v.minItems)
       if (v.maxItems !== undefined) schema = schema.max(v.maxItems)
-      return v.optional ? schema.optional() : schema
+      return isOptional ? schema.optional() : schema
     }
 
     case 'group':
