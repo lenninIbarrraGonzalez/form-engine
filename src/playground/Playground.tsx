@@ -1,6 +1,6 @@
 // Playground — split-panel layout: Monaco editor (left) + live FormEngine (right).
 // Monaco is lazy-loaded so it lives in a separate Vite chunk.
-import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import type { FormDefinition } from '../engine/schema/types'
 import { FormEngine } from '../engine/react/FormEngine'
 import { parseAndValidateSchema, type PlaygroundResult } from './playground-pipeline'

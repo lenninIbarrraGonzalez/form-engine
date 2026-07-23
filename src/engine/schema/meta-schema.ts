@@ -42,7 +42,7 @@ const OperatorSchema = z.enum(
 // ---- ShowIf condition schema (recursive, lazy) -------------------------
 
 type ShowIfConditionInput =
-  | { field: string; operator: string; value: unknown }
+  | { field: string; operator: string; value?: unknown }
   | { and: ShowIfConditionInput[] }
   | { or: ShowIfConditionInput[] }
 

@@ -1,7 +1,7 @@
 // FormRenderer — iterates FieldDefinitions and dispatches each to its registered component.
 // Wraps each field in a visibility gate via useFieldVisibility.
 // Handles 'array' and 'group' types with recursive rendering.
-import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
+import type { Control, FieldError, FieldErrors, UseFormRegister } from 'react-hook-form'
 import type { FieldDefinition } from '../schema/types'
 import type { VisibilityStore } from '../store/visibility-store'
 import { useFieldVisibility } from './useFieldVisibility'
@@ -77,7 +77,9 @@ function FieldWrapper({
 
   if (!visible) return null
 
-  const error = getNestedError(errors, qualifiedName)
+  // Cast via unknown: getNestedError returns FieldErrors[string] (Merge<FieldError, FieldErrorsImpl>)
+  // but field components only use .message and .type, which are present on both shapes.
+  const error = getNestedError(errors, qualifiedName) as FieldError | undefined
 
   switch (field.type) {
     case 'text':

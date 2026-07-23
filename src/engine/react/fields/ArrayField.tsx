@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { useFieldArray, type Control, type UseFormRegister, type FieldErrors } from 'react-hook-form'
 import type { FieldDefinition } from '../../schema/types'
 import type { VisibilityStore } from '../../store/visibility-store'
@@ -31,7 +32,10 @@ export function ArrayField({
   store,
   renderFields,
 }: ArrayFieldProps) {
-  const { fields, append, remove } = useFieldArray({ control, name })
+  // Cast to any: RHF's FieldPath<Record<string, unknown>> resolves to never in strict TS.
+  // This is a known RHF limitation when using generic Record<string, unknown> as form values.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { fields, append, remove } = useFieldArray({ control: control as any, name })
 
   return (
     <fieldset>
