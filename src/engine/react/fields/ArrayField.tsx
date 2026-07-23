@@ -1,4 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { useRef } from 'react'
 import { useFieldArray, type Control, type UseFormRegister, type FieldErrors } from 'react-hook-form'
 import type { FieldDefinition } from '../../schema/types'
 import type { VisibilityStore } from '../../store/visibility-store'
@@ -36,27 +37,42 @@ export function ArrayField({
   // This is a known RHF limitation when using generic Record<string, unknown> as form values.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, append, remove } = useFieldArray({ control: control as any, name })
+  const listRef = useRef<HTMLDivElement>(null)
+
+  function handleAdd() {
+    append({})
+    // Focus the first focusable input in the newly appended item after render.
+    requestAnimationFrame(() => {
+      if (!listRef.current) return
+      const items = listRef.current.querySelectorAll<HTMLElement>('[data-array-item]')
+      const lastItem = items[items.length - 1]
+      const firstInput = lastItem?.querySelector<HTMLElement>('input, select, textarea')
+      firstInput?.focus()
+    })
+  }
 
   return (
     <fieldset>
       <legend>{label}</legend>
-      {fields.map((field, index) => (
-        <div key={field.id}>
-          <strong>{label} {index + 1}</strong>
-          {renderFields(
-            itemFields,
-            `${name}.${index}`,
-            register,
-            errors,
-            store,
-            control,
-          )}
-          <button type="button" onClick={() => remove(index)}>
-            Remove
-          </button>
-        </div>
-      ))}
-      <button type="button" onClick={() => append({})}>
+      <div ref={listRef}>
+        {fields.map((field, index) => (
+          <div key={field.id} data-array-item>
+            <strong>{label} {index + 1}</strong>
+            {renderFields(
+              itemFields,
+              `${name}.${index}`,
+              register,
+              errors,
+              store,
+              control,
+            )}
+            <button type="button" onClick={() => remove(index)}>
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={handleAdd}>
         Add {label}
       </button>
     </fieldset>

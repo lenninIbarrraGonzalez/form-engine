@@ -5,6 +5,7 @@ import type { Control, FieldError, FieldErrors, UseFormRegister } from 'react-ho
 import type { FieldDefinition } from '../schema/types'
 import type { VisibilityStore } from '../store/visibility-store'
 import { useFieldVisibility } from './useFieldVisibility'
+import { getField } from './field-registry'
 import { TextField } from './fields/TextField'
 import { NumberField } from './fields/NumberField'
 import { SelectField } from './fields/SelectField'
@@ -170,12 +171,25 @@ function FieldWrapper({
         </div>
       )
 
-    default:
+    default: {
+      const CustomComponent = getField(field.type)
+      if (CustomComponent) {
+        return (
+          <CustomComponent
+            key={qualifiedName}
+            name={qualifiedName}
+            label={field.label}
+            register={register as unknown as Record<string, unknown>}
+            error={error as unknown as Record<string, unknown>}
+          />
+        )
+      }
       return (
         <div key={qualifiedName} role="alert">
           Unknown field type: {(field as FieldDefinition).type}
         </div>
       )
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { FormDefinition } from '../schema/types'
 import { FormEngine } from './FormEngine'
+import { registerField } from './field-registry'
 
 // ---- Schema fixtures --------------------------------------------------
 
@@ -277,6 +278,39 @@ describe('FormEngine', () => {
       render(<FormEngine schema={WIZARD_SCHEMA} onSubmit={vi.fn()} />)
       expect(screen.getByLabelText('First Name')).toBeInTheDocument()
       expect(screen.getByLabelText('Last Name')).toBeInTheDocument()
+    })
+  })
+
+  describe('field registry', () => {
+    it('renders unknown field type with role="alert" error message', () => {
+      const UNKNOWN_TYPE_SCHEMA: FormDefinition = {
+        title: 'Unknown Type Form',
+        fields: [
+          // @ts-expect-error intentionally using unsupported type for test
+          { name: 'signature', type: 'signature', label: 'Signature' },
+        ],
+      }
+      render(<FormEngine schema={UNKNOWN_TYPE_SCHEMA} onSubmit={vi.fn()} />)
+      const alert = screen.getByRole('alert')
+      expect(alert.textContent).toContain('signature')
+    })
+
+    it('renders a custom field component registered via registerField()', () => {
+      function CustomWidget({ label }: { label: string }) {
+        return <div data-testid="custom-widget">{label}</div>
+      }
+      registerField('custom', CustomWidget as React.ComponentType<Record<string, unknown>>)
+
+      const CUSTOM_SCHEMA: FormDefinition = {
+        title: 'Custom Field Form',
+        fields: [
+          // @ts-expect-error custom type not in FieldType union
+          { name: 'myCustom', type: 'custom', label: 'My Custom Field' },
+        ],
+      }
+      render(<FormEngine schema={CUSTOM_SCHEMA} onSubmit={vi.fn()} />)
+      expect(screen.getByTestId('custom-widget')).toBeInTheDocument()
+      expect(screen.getByTestId('custom-widget').textContent).toBe('My Custom Field')
     })
   })
 })
