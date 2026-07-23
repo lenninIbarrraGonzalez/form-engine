@@ -1,0 +1,40 @@
+{
+  "title": "Encuesta de Experiencia",
+  "fields": [
+    {
+      "name": "nombre",
+      "type": "text",
+      "label": "¿Cuál es tu nombre?",
+      "validations": { "required": true }
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "label": "¿Cuál es tu correo electrónico?",
+      "validations": { "required": true }
+    },
+    {
+      "name": "nivelExperiencia",
+      "type": "select",
+      "label": "¿Cuál es tu nivel de experiencia?",
+      "validations": { "required": true },
+      "items": [
+        { "label": "Junior", "value": "Junior" },
+        { "label": "Mid", "value": "Mid" },
+        { "label": "Senior", "value": "Senior" }
+      ]
+    },
+    {
+      "name": "lenguajeFavorito",
+      "type": "text",
+      "label": "¿Cuál es tu lenguaje de programación favorito?",
+      "validations": { "required": true },
+      "showIf": { "field": "nivelExperiencia", "operator": "notEquals", "value": "Junior" }
+    },
+    {
+      "name": "comentarios",
+      "type": "text",
+      "label": "¿Tienes algún comentario adicional?"
+    }
+  ]
+}

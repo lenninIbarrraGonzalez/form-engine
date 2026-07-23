@@ -1,0 +1,63 @@
+{
+  "title": "Solicitud de Crédito",
+  "steps": [
+    {
+      "title": "Información del Titular",
+      "fields": [
+        {
+          "name": "tipoPersona",
+          "type": "select",
+          "label": "Tipo de Persona",
+          "validations": { "required": true },
+          "items": [
+            { "label": "Persona Natural", "value": "natural" },
+            { "label": "Persona Jurídica", "value": "juridica" }
+          ]
+        },
+        {
+          "name": "nit",
+          "type": "text",
+          "label": "NIT",
+          "showIf": { "field": "tipoPersona", "operator": "equals", "value": "juridica" },
+          "validations": { "pattern": "^\\d{9}-\\d$" }
+        }
+      ]
+    },
+    {
+      "title": "Información Financiera",
+      "fields": [
+        {
+          "name": "ingresos",
+          "type": "number",
+          "label": "Ingresos Mensuales",
+          "validations": { "required": true, "min": 1000000 }
+        }
+      ]
+    },
+    {
+      "title": "Referencias",
+      "fields": [
+        {
+          "name": "referencias",
+          "type": "array",
+          "label": "Referencias Personales",
+          "validations": { "minItems": 1, "maxItems": 3 },
+          "fields": [
+            {
+              "name": "nombre",
+              "type": "text",
+              "label": "Nombre",
+              "validations": { "required": true }
+            },
+            {
+              "name": "telefono",
+              "type": "tel",
+              "label": "Teléfono",
+              "validations": { "required": true }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

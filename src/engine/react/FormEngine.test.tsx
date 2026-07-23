@@ -8,6 +8,24 @@ import { FormEngine } from './FormEngine'
 
 // ---- Schema fixtures --------------------------------------------------
 
+const WIZARD_SCHEMA: FormDefinition = {
+  title: 'Wizard Form',
+  steps: [
+    {
+      title: 'Step One',
+      fields: [
+        { name: 'firstName', type: 'text', label: 'First Name', validations: { required: true } },
+      ],
+    },
+    {
+      title: 'Step Two',
+      fields: [
+        { name: 'lastName', type: 'text', label: 'Last Name', validations: { required: true } },
+      ],
+    },
+  ],
+}
+
 const TEXT_SCHEMA: FormDefinition = {
   title: 'Simple Form',
   fields: [
@@ -229,6 +247,36 @@ describe('FormEngine', () => {
         const errorEl = document.getElementById(describedById!)
         expect(errorEl).not.toBeNull()
       })
+    })
+  })
+
+  describe('layout prop', () => {
+    it('wizard layout renders Step 1 progress indicator', () => {
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+      expect(screen.getByText(/step 1 of 2/i)).toBeInTheDocument()
+    })
+
+    it('wizard layout shows only step 1 fields on mount', () => {
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+      expect(screen.getByLabelText('First Name')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Last Name')).not.toBeInTheDocument()
+    })
+
+    it('wizard layout advances to step 2 when Next is clicked', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+
+      await user.click(screen.getByRole('button', { name: /next/i }))
+
+      expect(screen.getByLabelText('Last Name')).toBeInTheDocument()
+      expect(screen.queryByLabelText('First Name')).not.toBeInTheDocument()
+      expect(screen.getByText(/step 2 of 2/i)).toBeInTheDocument()
+    })
+
+    it('flat layout (default) shows all fields from all steps', () => {
+      render(<FormEngine schema={WIZARD_SCHEMA} onSubmit={vi.fn()} />)
+      expect(screen.getByLabelText('First Name')).toBeInTheDocument()
+      expect(screen.getByLabelText('Last Name')).toBeInTheDocument()
     })
   })
 })

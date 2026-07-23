@@ -8,17 +8,22 @@ import { evaluateVisibility, type VisibilityMap } from '../core/condition-evalua
 import { buildZodSchema } from '../core/zod-builder'
 import { createVisibilityStore } from '../store/visibility-store'
 import { FormRenderer } from './FormRenderer'
+import { WizardLayout } from './layouts/WizardLayout'
+import { TypeformLayout } from './layouts/TypeformLayout'
 
 // ---- Types -----------------------------------------------------------
+
+export type LayoutMode = 'flat' | 'wizard' | 'one-field-per-screen'
 
 interface FormEngineProps {
   schema: FormDefinition
   onSubmit: (data: Record<string, unknown>) => void
+  layout?: LayoutMode
 }
 
 // ---- Component -------------------------------------------------------
 
-export function FormEngine({ schema, onSubmit }: FormEngineProps) {
+export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProps) {
   // Build dependency graph once per schema (memoized)
   const graph = useMemo(() => buildDependencyGraph(schema), [schema])
 
@@ -113,8 +118,33 @@ export function FormEngine({ schema, onSubmit }: FormEngineProps) {
     },
   )
 
-  return (
-    <form onSubmit={handleFormSubmit} noValidate>
+  function renderBody() {
+    if (layout === 'wizard' && schema.steps && schema.steps.length > 0) {
+      return (
+        <WizardLayout
+          steps={schema.steps}
+          register={register}
+          errors={errors}
+          store={store}
+          control={control}
+        />
+      )
+    }
+
+    if (layout === 'one-field-per-screen') {
+      return (
+        <TypeformLayout
+          fields={allFields}
+          register={register}
+          errors={errors}
+          store={store}
+          control={control}
+        />
+      )
+    }
+
+    // Default: flat layout — all fields rendered together
+    return (
       <FormRenderer
         fields={allFields}
         register={register}
@@ -122,6 +152,12 @@ export function FormEngine({ schema, onSubmit }: FormEngineProps) {
         store={store}
         control={control}
       />
+    )
+  }
+
+  return (
+    <form onSubmit={handleFormSubmit} noValidate>
+      {renderBody()}
       <button type="submit">Submit</button>
     </form>
   )

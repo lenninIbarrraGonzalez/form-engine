@@ -1,0 +1,98 @@
+{
+  "title": "Reclamación de Seguro",
+  "fields": [
+    {
+      "name": "tipoSiniestro",
+      "type": "select",
+      "label": "Tipo de Siniestro",
+      "validations": { "required": true },
+      "items": [
+        { "label": "Vehículo", "value": "Vehiculo" },
+        { "label": "Hogar", "value": "Hogar" },
+        { "label": "Vida", "value": "Vida" }
+      ]
+    },
+    {
+      "name": "poliza",
+      "type": "text",
+      "label": "Número de Póliza",
+      "validations": { "required": true }
+    },
+    {
+      "name": "fechaSiniestro",
+      "type": "text",
+      "label": "Fecha del Siniestro",
+      "validations": { "required": true }
+    },
+    {
+      "name": "descripcion",
+      "type": "text",
+      "label": "Descripción del Siniestro"
+    },
+    {
+      "name": "placaVehiculo",
+      "type": "text",
+      "label": "Placa del Vehículo",
+      "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" }
+    },
+    {
+      "name": "modeloVehiculo",
+      "type": "text",
+      "label": "Modelo del Vehículo",
+      "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" }
+    },
+    {
+      "name": "direccionHogar",
+      "type": "text",
+      "label": "Dirección del Hogar",
+      "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Hogar" }
+    },
+    {
+      "name": "danoEstimado",
+      "type": "number",
+      "label": "Daño Estimado",
+      "showIf": {
+        "or": [
+          { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" },
+          { "field": "tipoSiniestro", "operator": "equals", "value": "Hogar" }
+        ]
+      }
+    },
+    {
+      "name": "beneficiario",
+      "type": "text",
+      "label": "Beneficiario",
+      "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Vida" }
+    },
+    {
+      "name": "documentos",
+      "type": "array",
+      "label": "Documentos de Soporte",
+      "showIf": {
+        "or": [
+          { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" },
+          { "field": "tipoSiniestro", "operator": "equals", "value": "Hogar" },
+          { "field": "tipoSiniestro", "operator": "equals", "value": "Vida" }
+        ]
+      },
+      "validations": { "minItems": 1 },
+      "fields": [
+        {
+          "name": "tipo",
+          "type": "select",
+          "label": "Tipo de Documento",
+          "items": [
+            { "label": "Foto", "value": "Foto" },
+            { "label": "Factura", "value": "Factura" },
+            { "label": "Otro", "value": "Otro" }
+          ]
+        },
+        {
+          "name": "descripcionDoc",
+          "type": "text",
+          "label": "Descripción"
+        }
+      ]
+    }
+  ]
+}
