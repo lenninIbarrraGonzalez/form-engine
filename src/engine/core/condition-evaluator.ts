@@ -27,9 +27,15 @@ export function evaluateCondition(
   }
 
   const { field, operator, value } = condition
-  const fieldValue = values[field]
+  // Own-property lookup only — inherited keys like `__proto__`, `constructor`,
+  // or `toString` must be treated as absent, never resolved off the prototype chain.
+  const fieldValue = Object.prototype.hasOwnProperty.call(values, field)
+    ? values[field]
+    : undefined
 
-  if (fieldValue === undefined) return false
+  // An unset field is "not equal to" any concrete value, so notEquals holds.
+  // Every other operator is unsatisfiable against an absent value.
+  if (fieldValue === undefined) return operator === 'notEquals'
 
   switch (operator) {
     case 'equals':

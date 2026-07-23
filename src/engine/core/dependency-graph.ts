@@ -63,33 +63,58 @@ function collectEdges(
 // ---- Cycle detection via DFS with colour marking -------------------
 // white = unvisited, gray = in-stack (cycle candidate), black = done
 
+// Iterative (explicit-stack) DFS so arbitrarily deep schemas cannot overflow
+// the native JS call stack. `path` mirrors the gray frames on the stack and is
+// used to reconstruct a readable cycle path when a back-edge is found.
 function runDfsOnGraph(edges: Map<string, Set<string>>, allNodes: Set<string>): void {
   const color = new Map<string, 'white' | 'gray' | 'black'>()
   for (const n of allNodes) color.set(n, 'white')
 
-  const stack: string[] = []
-
-  function dfs(node: string): void {
-    color.set(node, 'gray')
-    stack.push(node)
-
-    for (const neighbor of edges.get(node) ?? []) {
-      if (color.get(neighbor) === 'gray') {
-        const cycleStart = stack.indexOf(neighbor)
-        const cyclePath = [...stack.slice(cycleStart), neighbor].join(' → ')
-        throw new CyclicDependencyError(cyclePath)
-      }
-      if (color.get(neighbor) !== 'black') {
-        dfs(neighbor)
-      }
-    }
-
-    stack.pop()
-    color.set(node, 'black')
+  interface Frame {
+    node: string
+    neighbors: Iterator<string>
   }
 
-  for (const n of color.keys()) {
-    if (color.get(n) === 'white') dfs(n)
+  const emptyNeighbors: Iterable<string> = []
+
+  for (const start of color.keys()) {
+    if (color.get(start) !== 'white') continue
+
+    const path: string[] = [start]
+    const stack: Frame[] = [
+      { node: start, neighbors: (edges.get(start) ?? emptyNeighbors)[Symbol.iterator]() },
+    ]
+    color.set(start, 'gray')
+
+    while (stack.length > 0) {
+      const frame = stack[stack.length - 1]
+      const step = frame.neighbors.next()
+
+      if (step.done) {
+        color.set(frame.node, 'black')
+        stack.pop()
+        path.pop()
+        continue
+      }
+
+      const neighbor = step.value
+      const neighborColor = color.get(neighbor)
+
+      if (neighborColor === 'gray') {
+        const cycleStart = path.indexOf(neighbor)
+        const cyclePath = [...path.slice(cycleStart), neighbor].join(' → ')
+        throw new CyclicDependencyError(cyclePath)
+      }
+
+      if (neighborColor !== 'black') {
+        color.set(neighbor, 'gray')
+        path.push(neighbor)
+        stack.push({
+          node: neighbor,
+          neighbors: (edges.get(neighbor) ?? emptyNeighbors)[Symbol.iterator](),
+        })
+      }
+    }
   }
 }
 

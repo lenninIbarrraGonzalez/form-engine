@@ -276,3 +276,41 @@ describe('getTransitiveDependents', () => {
     expect(dependents).toHaveLength(0)
   })
 })
+
+// --- Scenario: deep dependency chain does not overflow the call stack -
+
+describe('buildDependencyGraph — deep chain (stack safety)', () => {
+  it('handles a linear chain far deeper than the native call-stack limit', () => {
+    const depth = 20000
+    const fields: NonNullable<FormDefinition['fields']> = [
+      { name: 'f0', type: 'text', label: 'f0' },
+    ]
+    for (let i = 1; i < depth; i++) {
+      fields.push({
+        name: `f${i}`,
+        type: 'text',
+        label: `f${i}`,
+        showIf: { field: `f${i - 1}`, operator: 'equals', value: 'x' },
+      })
+    }
+    const form = makeForm(fields)
+    // Must not throw RangeError: Maximum call stack size exceeded
+    expect(() => buildDependencyGraph(form)).not.toThrow()
+  })
+
+  it('still detects a genuine cycle in a deep graph', () => {
+    const depth = 5000
+    const fields: NonNullable<FormDefinition['fields']> = []
+    for (let i = 0; i < depth; i++) {
+      // each field depends on the next; the last wraps back to the first → cycle
+      fields.push({
+        name: `n${i}`,
+        type: 'text',
+        label: `n${i}`,
+        showIf: { field: `n${(i + 1) % depth}`, operator: 'equals', value: 'x' },
+      })
+    }
+    const form = makeForm(fields)
+    expect(() => buildDependencyGraph(form)).toThrow(CyclicDependencyError)
+  })
+})

@@ -63,6 +63,34 @@ describe('evaluateCondition — notEquals', () => {
   })
 })
 
+// ---- Scenario: notEquals with an absent field -----------------------
+
+describe('evaluateCondition — notEquals with absent field', () => {
+  it('returns true when the referenced field is absent (an unset field is not equal to any value)', () => {
+    const condition: ShowIfCondition = { field: 'status', operator: 'notEquals', value: 'closed' }
+    expect(evaluateCondition(condition, {})).toBe(true)
+  })
+
+  it('still returns false for equals when the field is absent', () => {
+    const condition: ShowIfCondition = { field: 'status', operator: 'equals', value: 'closed' }
+    expect(evaluateCondition(condition, {})).toBe(false)
+  })
+})
+
+// ---- Scenario: prototype-safe field lookup --------------------------
+
+describe('evaluateCondition — prototype-safe lookup', () => {
+  it('treats inherited prototype keys (toString) as absent for equals', () => {
+    const condition: ShowIfCondition = { field: 'toString', operator: 'equals', value: 'x' }
+    expect(evaluateCondition(condition, {})).toBe(false)
+  })
+
+  it('treats inherited prototype keys (constructor) as absent → notEquals is true', () => {
+    const condition: ShowIfCondition = { field: 'constructor', operator: 'notEquals', value: 'x' }
+    expect(evaluateCondition(condition, {})).toBe(true)
+  })
+})
+
 // ---- Scenario: contains ---------------------------------------------
 
 describe('evaluateCondition — contains', () => {
