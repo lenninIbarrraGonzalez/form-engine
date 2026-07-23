@@ -1,22 +1,11 @@
 // Core TypeScript types for the form engine schema contract.
 // No Zod here — runtime validation lives in meta-schema.ts.
 
-export type FieldType =
-  | 'text'
-  | 'number'
-  | 'select'
-  | 'checkbox'
-  | 'file'
-  | 'group'
-  | 'array'
-  | 'tel'
+export const FIELD_TYPES = ['text', 'number', 'select', 'checkbox', 'file', 'group', 'array', 'tel'] as const
+export const OPERATORS = ['equals', 'notEquals', 'greaterThan', 'lessThan', 'contains'] as const
 
-export type Operator =
-  | 'equals'
-  | 'notEquals'
-  | 'greaterThan'
-  | 'lessThan'
-  | 'contains'
+export type FieldType = typeof FIELD_TYPES[number]
+export type Operator = typeof OPERATORS[number]
 
 export type PrimitiveCondition = {
   field: string

@@ -5,7 +5,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { FormDefinition } from '../schema/types'
 import { FormEngine } from './FormEngine'
-import { registerField } from './field-registry'
+import { registerField, type FieldComponent } from './field-registry'
 
 // ---- Schema fixtures --------------------------------------------------
 
@@ -299,7 +299,7 @@ describe('FormEngine', () => {
       function CustomWidget({ label }: { label: string }) {
         return <div data-testid="custom-widget">{label}</div>
       }
-      registerField('custom', CustomWidget as React.ComponentType<Record<string, unknown>>)
+      registerField('custom', CustomWidget as FieldComponent)
 
       const CUSTOM_SCHEMA: FormDefinition = {
         title: 'Custom Field Form',

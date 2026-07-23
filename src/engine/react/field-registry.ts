@@ -1,10 +1,18 @@
 // Field registry: maps field type strings to React component constructors.
 // Supports extension via registerField() for custom field types.
+import type { FieldError, UseFormRegister } from 'react-hook-form'
 import type { FieldType } from '../schema/types'
 
 // ---- Public types ----------------------------------------------------
 
-export type FieldComponent = React.ComponentType<Record<string, unknown>>
+export interface FieldComponentProps {
+  name: string
+  label: string
+  register: UseFormRegister<Record<string, unknown>>
+  error?: FieldError
+}
+
+export type FieldComponent = React.ComponentType<FieldComponentProps>
 
 const registry = new Map<string, FieldComponent>()
 

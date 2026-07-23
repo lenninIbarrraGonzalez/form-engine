@@ -2,6 +2,7 @@
 // Validates a raw JSON value against the FormDefinition shape and returns a typed object.
 // Throws FormDefinitionError with human-readable issues on any validation failure.
 import { z } from 'zod'
+import { FIELD_TYPES, OPERATORS } from './types'
 import type { FormDefinition } from './types'
 
 // ---- Error type --------------------------------------------------------
@@ -25,19 +26,16 @@ export class FormDefinitionError extends Error {
 
 // ---- Operator schema --------------------------------------------------
 
-const OperatorSchema = z.enum(
-  ['equals', 'notEquals', 'greaterThan', 'lessThan', 'contains'],
-  {
-    errorMap: (issue, ctx) => {
-      if (issue.code === z.ZodIssueCode.invalid_enum_value) {
-        return {
-          message: `Invalid operator "${ctx.data}". Allowed operators: equals, notEquals, greaterThan, lessThan, contains`,
-        }
+const OperatorSchema = z.enum(OPERATORS, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === z.ZodIssueCode.invalid_enum_value) {
+      return {
+        message: `Invalid operator "${ctx.data}". Allowed operators: ${OPERATORS.join(', ')}`,
       }
-      return { message: ctx.defaultError }
-    },
+    }
+    return { message: ctx.defaultError }
   },
-)
+})
 
 // ---- ShowIf condition schema (recursive, lazy) -------------------------
 
@@ -81,19 +79,16 @@ const ValidationDefSchema = z.object({
 
 // ---- Field type schema ------------------------------------------------
 
-const FieldTypeSchema = z.enum(
-  ['text', 'number', 'select', 'checkbox', 'file', 'group', 'array', 'tel'],
-  {
-    errorMap: (issue, ctx) => {
-      if (issue.code === z.ZodIssueCode.invalid_enum_value) {
-        return {
-          message: `Unknown field type "${ctx.data}". Supported types: text, number, select, checkbox, file, group, array, tel`,
-        }
+const FieldTypeSchema = z.enum(FIELD_TYPES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === z.ZodIssueCode.invalid_enum_value) {
+      return {
+        message: `Unknown field type "${ctx.data}". Supported types: ${FIELD_TYPES.join(', ')}`,
       }
-      return { message: ctx.defaultError }
-    },
+    }
+    return { message: ctx.defaultError }
   },
-)
+})
 
 // ---- SelectItem schema -----------------------------------------------
 

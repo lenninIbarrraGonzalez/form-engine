@@ -183,8 +183,8 @@ function FieldWrapper({
             key={qualifiedName}
             name={qualifiedName}
             label={field.label}
-            register={register as unknown as Record<string, unknown>}
-            error={error as unknown as Record<string, unknown>}
+            register={register}
+            error={error}
           />
         )
       }
