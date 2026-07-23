@@ -1,13 +1,14 @@
 // FormEngine — root component that wires RHF, visibility store, dependency graph,
 // and custom Zod resolver together into a reactive form.
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import type { FormDefinition } from '../schema/types'
 import { collectAllFields } from '../schema/collect-fields'
 import { buildDependencyGraph } from '../core/dependency-graph'
-import { evaluateVisibility, type VisibilityMap } from '../core/condition-evaluator'
+import type { VisibilityMap } from '../core/condition-evaluator'
 import { createVisibilityStore } from '../store/visibility-store'
 import { createZodResolver } from './create-zod-resolver'
+import { useVisibilitySync } from './useVisibilitySync'
 import { FormRenderer } from './FormRenderer'
 import { WizardLayout } from './layouts/WizardLayout'
 import { TypeformLayout } from './layouts/TypeformLayout'
@@ -67,22 +68,8 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
     mode: 'onSubmit',
   })
 
-  // D2: refs keep the callback stable so the subscription is set up once
-  // and always reads the latest graph/store without re-subscribing on every render.
-  const graphRef = useRef(graph)
-  graphRef.current = graph
-  const storeRef = useRef(store)
-  storeRef.current = store
-
-  useEffect(() => {
-    const subscription = watch((values, { name: changedField }) => {
-      if (!changedField) return
-      const current = storeRef.current.getSnapshot()
-      const next = evaluateVisibility(graphRef.current, changedField, values as Record<string, unknown>, current)
-      storeRef.current.setVisibility(next)
-    })
-    return () => subscription.unsubscribe()
-  }, [watch]) // watch is stable per useForm call; graph/store accessed via refs
+  // Reactive glue: recompute visibility into the store as fields change.
+  useVisibilitySync(watch, graph, store)
 
   const handleFormSubmit = handleSubmit(
     (data) => {
