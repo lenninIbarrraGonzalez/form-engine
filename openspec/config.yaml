@@ -1,0 +1,74 @@
+schema: spec-driven
+project: formengine
+artifact_store: openspec
+persistence_mode: openspec
+
+context: |
+  Stack: Vite + React 18 + TypeScript + Vitest + Tailwind CSS
+  Architecture: 4 decoupled layers — schema-as-contract (Zod meta-schema),
+    pure engine core (dependency-graph + condition-evaluator + zod-builder, no React),
+    reactive visibility store (useSyncExternalStore), React interpreter layer (RHF + field-registry + FormRenderer).
+  RHF owns form values; own store owns visibility only.
+  Reactivity: dependency graph + topological order + BFS/DFS — no global watch().
+  Target: 100% frontend MVP, deployable to Vercel/Netlify.
+  Methodology: SDD + Strict TDD. Conventional commits. No AI attribution.
+  Stages: 9 stages (Etapa 0–9), each closes with commit + green test suite.
+
+strict_tdd: true
+
+testing:
+  runner: vitest
+  command: npm run test
+  watch_command: npm run test -- --watch
+  coverage_command: npm run test -- --coverage
+  layers:
+    unit: true
+    integration: true  # React Testing Library for React layer
+    e2e: false
+  unit_tool: vitest
+  integration_tool: "@testing-library/react"
+  e2e_tool: null
+  coverage_available: true
+  linter: eslint
+  linter_command: npm run lint
+  type_checker: tsc
+  type_checker_command: npx tsc --noEmit
+  formatter: prettier
+  formatter_command: npx prettier --check .
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Reference which of the 9 Etapas (stages) is targeted
+    - Confirm whether the change affects pure-core or React layer
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Separate core specs (no React) from React layer specs
+  design:
+    - Include sequence diagrams for reactive flow changes (field-change → visibility → re-render)
+    - Document the VisibilityMap contract when the zod-builder or condition-evaluator is touched
+    - Keep schema-as-contract and engine-core layers decoupled in design
+  tasks:
+    - Group by Etapa/stage using hierarchical numbering
+    - Pure-core tasks (Etapa 1–5) must have unit tests written before implementation (RED phase)
+    - React layer tasks (Etapa 6) must have RTL integration tests written before implementation
+    - Keep tasks completable in one session
+    - Forecast 400-line PR budget; recommend chained PRs for Etapa 6+
+  apply:
+    guidelines:
+      - Follow existing code patterns and layer boundaries
+      - Engine core (src/engine/core/) must remain free of React imports
+      - Visibility store (src/engine/store/) must be framework-agnostic
+    tdd: true
+    test_command: npm run test
+    strict_tdd_cycle: RED → GREEN → REFACTOR
+  verify:
+    test_command: npm run test
+    build_command: npm run build
+    type_check_command: npx tsc --noEmit
+    lint_command: npm run lint
+    coverage_threshold: 80
+  archive:
+    - Warn before merging destructive deltas
+    - Verify tests remain green after archiving
