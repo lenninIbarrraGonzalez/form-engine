@@ -6,8 +6,8 @@ import type { FormDefinition } from '../schema/types'
 import { collectAllFields } from '../schema/collect-fields'
 import { buildDependencyGraph } from '../core/dependency-graph'
 import { evaluateVisibility, type VisibilityMap } from '../core/condition-evaluator'
-import { buildZodSchema } from '../core/zod-builder'
 import { createVisibilityStore } from '../store/visibility-store'
+import { createZodResolver } from './create-zod-resolver'
 import { FormRenderer } from './FormRenderer'
 import { WizardLayout } from './layouts/WizardLayout'
 import { TypeformLayout } from './layouts/TypeformLayout'
@@ -32,14 +32,16 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
   // Build dependency graph once per schema (memoized)
   const graph = useMemo(() => buildDependencyGraph(schema), [schema])
 
-  // Compute initial visibility: fields with showIf start hidden (no values yet)
+  // Compute initial visibility: every field carrying a showIf condition starts
+  // hidden (no values yet). Derived from the graph so nested/qualified field
+  // names (e.g. group children) are covered, not just top-level names.
   const initialVisibility = useMemo((): VisibilityMap => {
     const map: VisibilityMap = {}
-    for (const field of allFields) {
-      if (field.showIf !== undefined) map[field.name] = false
+    for (const name of graph.fieldConditions.keys()) {
+      map[name] = false
     }
     return map
-  }, [allFields])
+  }, [graph])
 
   // Create visibility store once per schema, pre-seeded with initial state
   const store = useMemo(() => {
@@ -48,27 +50,9 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
     return s
   }, [schema, initialVisibility])
 
-  // Custom resolver: reads visibility snapshot at validation time
-  const resolver = useMemo(
-    () =>
-      async (values: Record<string, unknown>) => {
-        const snapshot = store.getSnapshot()
-        const zodSchema = buildZodSchema(schema, snapshot)
-        const result = await zodSchema.safeParseAsync(values)
-        if (result.success) {
-          return { values: result.data, errors: {} }
-        }
-        const errors: Record<string, { type: string; message: string }> = {}
-        for (const issue of result.error.issues) {
-          const path = issue.path.join('.')
-          if (!errors[path]) {
-            errors[path] = { type: issue.code, message: issue.message }
-          }
-        }
-        return { values: {}, errors }
-      },
-    [schema, store],
-  )
+  // Custom resolver: reads the visibility snapshot at validation time and never
+  // rejects (unexpected failures surface as a form-level error instead).
+  const resolver = useMemo(() => createZodResolver(schema, store), [schema, store])
 
   const {
     register,
@@ -104,8 +88,13 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
       onSubmit(data)
     },
     (fieldErrors) => {
-      const firstErrorKey = Object.keys(fieldErrors)[0]
-      if (firstErrorKey) setFocus(firstErrorKey)
+      // Only focus the first error that is actually visible/mounted — focusing a
+      // hidden field is a silent no-op that strands the user with no cue.
+      const snapshot = store.getSnapshot()
+      const firstVisibleError = Object.keys(fieldErrors).find(
+        (key) => snapshot[key] !== false,
+      )
+      if (firstVisibleError) setFocus(firstVisibleError)
     },
   )
 

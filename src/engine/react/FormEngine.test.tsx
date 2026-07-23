@@ -408,4 +408,23 @@ describe('FormEngine', () => {
       expect(screen.getByTestId('custom-widget').textContent).toBe('My Custom Field')
     })
   })
+
+  describe('hidden fields are excluded from submitted data', () => {
+    it('does not deliver the value of a field that was hidden at submit time', async () => {
+      const user = userEvent.setup()
+      const onSubmit = vi.fn()
+      render(<FormEngine schema={CONDITIONAL_SCHEMA} onSubmit={onSubmit} />)
+
+      // Reveal `nit`, type into it, then hide it again by switching type.
+      await user.selectOptions(screen.getByLabelText('Person Type'), 'juridica')
+      await user.type(await screen.findByLabelText('NIT'), '900123456')
+      await user.selectOptions(screen.getByLabelText('Person Type'), 'natural')
+
+      await user.click(screen.getByRole('button', { name: /submit/i }))
+
+      await waitFor(() => expect(onSubmit).toHaveBeenCalled())
+      const delivered = onSubmit.mock.calls[0][0]
+      expect(delivered).not.toHaveProperty('nit')
+    })
+  })
 })
