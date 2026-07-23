@@ -212,6 +212,35 @@ describe('getTopologicalOrder — root fields appear before dependents', () => {
   })
 })
 
+// --- Scenario: Phantom field reference is rejected -------------------
+
+describe('buildDependencyGraph — phantom field reference', () => {
+  it('throws when showIf references a field that does not exist in the form', () => {
+    const form = makeForm([
+      {
+        name: 'B',
+        type: 'text',
+        label: 'B',
+        showIf: { field: 'nonExistent', operator: 'equals', value: 'x' },
+      },
+    ])
+    expect(() => buildDependencyGraph(form)).toThrow(/nonExistent/)
+  })
+
+  it('does not throw when all referenced fields exist', () => {
+    const form = makeForm([
+      { name: 'A', type: 'text', label: 'A' },
+      {
+        name: 'B',
+        type: 'text',
+        label: 'B',
+        showIf: { field: 'A', operator: 'equals', value: 'x' },
+      },
+    ])
+    expect(() => buildDependencyGraph(form)).not.toThrow()
+  })
+})
+
 // --- Scenario: Transitive dependents --------------------------------
 
 describe('getTransitiveDependents', () => {

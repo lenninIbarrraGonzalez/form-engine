@@ -37,7 +37,9 @@ export function buildZodField(field: FieldDefinition): z.ZodTypeAny {
     }
 
     case 'checkbox':
-      return z.boolean().optional()
+      // required checkbox must be checked (true); optional checkbox accepts any boolean
+      if (v.required) return z.literal(true)
+      return v.optional ? z.boolean().optional() : z.boolean()
 
     case 'file':
       return z.unknown().optional()

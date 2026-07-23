@@ -198,3 +198,57 @@ describe('buildZodSchema — undefined visibility defaults to visible', () => {
     expect(result.success).toBe(false)
   })
 })
+
+// ---- B1: Checkbox required must fail when unchecked -----------------
+
+describe('buildZodSchema — checkbox field', () => {
+  it('fails parse when checkbox is required and value is false', () => {
+    const definition = makeForm([
+      { name: 'terms', type: 'checkbox', label: 'Terms', validations: { required: true } },
+    ])
+    const schema = buildZodSchema(definition, { terms: true })
+    // required checkbox: false is a boolean but does not satisfy the constraint
+    const result = schema.safeParse({ terms: false })
+    expect(result.success).toBe(false)
+  })
+
+  it('passes parse when checkbox is required and value is true', () => {
+    const definition = makeForm([
+      { name: 'terms', type: 'checkbox', label: 'Terms', validations: { required: true } },
+    ])
+    const schema = buildZodSchema(definition, { terms: true })
+    const result = schema.safeParse({ terms: true })
+    expect(result.success).toBe(true)
+  })
+
+  it('passes parse when checkbox is optional and value is false', () => {
+    const definition = makeForm([
+      { name: 'newsletter', type: 'checkbox', label: 'Newsletter', validations: { optional: true } },
+    ])
+    const schema = buildZodSchema(definition, { newsletter: true })
+    const result = schema.safeParse({ newsletter: false })
+    expect(result.success).toBe(true)
+  })
+})
+
+// ---- B2: Number required must reject NaN / undefined ----------------
+
+describe('buildZodSchema — number required', () => {
+  it('fails parse when number field is required and value is NaN', () => {
+    const definition = makeForm([
+      { name: 'age', type: 'number', label: 'Age', validations: { required: true } },
+    ])
+    const schema = buildZodSchema(definition, { age: true })
+    const result = schema.safeParse({ age: NaN })
+    expect(result.success).toBe(false)
+  })
+
+  it('passes parse when number field is required and value is a valid number', () => {
+    const definition = makeForm([
+      { name: 'age', type: 'number', label: 'Age', validations: { required: true } },
+    ])
+    const schema = buildZodSchema(definition, { age: true })
+    const result = schema.safeParse({ age: 25 })
+    expect(result.success).toBe(true)
+  })
+})

@@ -112,9 +112,14 @@ export function buildDependencyGraph(definition: FormDefinition): DependencyGrap
 
   collectEdges(allFields, edges, reverse, nodes, fieldConditions)
 
-  // Extend node set to include edge sources that are referenced but not declared as fields
-  const allNodes = new Set([...nodes, ...edges.keys()])
-  runDfsOnGraph(edges, allNodes)
+  // Reject references to undeclared fields — fail at schema time, not runtime
+  for (const ref of edges.keys()) {
+    if (!nodes.has(ref)) {
+      throw new Error(`showIf references unknown field: "${ref}"`)
+    }
+  }
+
+  runDfsOnGraph(edges, nodes)
 
   return { edges, reverse, nodes, fieldConditions }
 }
