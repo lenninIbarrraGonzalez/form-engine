@@ -7,6 +7,7 @@ interface ArrayFieldProps {
   name: string
   label: string
   itemFields: FieldDefinition[]
+  maxItems?: number
   control: Control<Record<string, unknown>>
   register: UseFormRegister<Record<string, unknown>>
   errors: FieldErrors<Record<string, unknown>>
@@ -26,6 +27,7 @@ export function ArrayField({
   name,
   label,
   itemFields,
+  maxItems,
   control,
   register,
   errors,
@@ -71,7 +73,12 @@ export function ArrayField({
           </div>
         ))}
       </div>
-      <button type="button" onClick={handleAdd}>
+      <button
+        type="button"
+        onClick={handleAdd}
+        disabled={maxItems !== undefined && fields.length >= maxItems}
+        aria-disabled={maxItems !== undefined && fields.length >= maxItems}
+      >
         Add {label}
       </button>
     </fieldset>

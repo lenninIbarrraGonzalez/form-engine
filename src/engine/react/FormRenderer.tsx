@@ -135,6 +135,7 @@ function FieldWrapper({
           name={qualifiedName}
           label={field.label}
           itemFields={field.fields ?? []}
+          maxItems={field.validations?.maxItems}
           control={control}
           register={register}
           errors={errors}

@@ -91,6 +91,11 @@
           "name": "descripcionDoc",
           "type": "text",
           "label": "Descripción"
+        },
+        {
+          "name": "archivoAdjunto",
+          "type": "file",
+          "label": "Archivo Adjunto"
         }
       ]
     }
