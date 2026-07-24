@@ -389,6 +389,20 @@ describe('FormEngine', () => {
       expect(screen.getByText(/no fields/i)).toBeInTheDocument()
     })
 
+    it('wizard jumps to the step containing the first error when Submit fails from an earlier step', async () => {
+      const user = userEvent.setup()
+      render(<FormEngine schema={WIZARD_SCHEMA} layout="wizard" onSubmit={vi.fn()} />)
+
+      // On step 1 — satisfy step 1 so its own field is not the first error.
+      await user.type(screen.getByLabelText('First Name'), 'Ada')
+      // The Submit button is always visible; pressing it validates every step.
+      await user.click(screen.getByRole('button', { name: /^submit$/i }))
+
+      // lastName (step 2) is the first error → the wizard must navigate there.
+      expect(await screen.findByLabelText('Last Name')).toBeInTheDocument()
+      expect(screen.getByText(/step 2 of 2/i)).toBeInTheDocument()
+    })
+
     it('flat layout (default) shows all fields from all steps', () => {
       render(<FormEngine schema={WIZARD_SCHEMA} onSubmit={vi.fn()} />)
       expect(screen.getByLabelText('First Name')).toBeInTheDocument()

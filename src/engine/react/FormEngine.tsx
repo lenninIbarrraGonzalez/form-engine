@@ -1,6 +1,6 @@
 // FormEngine — root component that wires RHF, visibility store, dependency graph,
 // and custom Zod resolver together into a reactive form.
-import { useMemo } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import type { FormDefinition } from '../schema/types'
 import { collectAllFields } from '../schema/collect-fields'
@@ -71,18 +71,49 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
   // Reactive glue: recompute visibility into the store as fields change.
   useVisibilitySync(watch, graph, store)
 
+  // Wizard step is owned here so a failed submit can jump to the errored step.
+  const [currentStep, setCurrentStep] = useState(0)
+  // A focus target that must wait until its step is mounted before setFocus works.
+  const pendingFocusRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (pendingFocusRef.current) {
+      setFocus(pendingFocusRef.current)
+      pendingFocusRef.current = null
+    }
+  }, [currentStep, setFocus])
+
+  // Returns the index of the step containing `fieldName`, or -1 if none.
+  function findStepFor(fieldName: string): number {
+    return (
+      schema.steps?.findIndex((step) =>
+        step.fields.some((field) => field.name === fieldName),
+      ) ?? -1
+    )
+  }
+
   const handleFormSubmit = handleSubmit(
     (data) => {
       onSubmit(data)
     },
     (fieldErrors) => {
-      // Only focus the first error that is actually visible/mounted — focusing a
-      // hidden field is a silent no-op that strands the user with no cue.
+      // Focus the first error that is actually visible — focusing a hidden field
+      // is a silent no-op that strands the user with no cue.
       const snapshot = store.getSnapshot()
       const firstVisibleError = Object.keys(fieldErrors).find(
         (key) => snapshot[key] !== false,
       )
-      if (firstVisibleError) setFocus(firstVisibleError)
+      if (!firstVisibleError) return
+
+      // In a wizard the error may live on a step that is not currently mounted;
+      // navigate there first, then defer focus until that step renders.
+      const errorStep = layout === 'wizard' ? findStepFor(firstVisibleError) : -1
+      if (errorStep >= 0 && errorStep !== currentStep) {
+        pendingFocusRef.current = firstVisibleError
+        setCurrentStep(errorStep)
+      } else {
+        setFocus(firstVisibleError)
+      }
     },
   )
 
@@ -91,6 +122,8 @@ export function FormEngine({ schema, onSubmit, layout = 'flat' }: FormEngineProp
       return (
         <WizardLayout
           steps={schema.steps}
+          currentStep={currentStep}
+          onStepChange={setCurrentStep}
           register={register}
           errors={errors}
           store={store}

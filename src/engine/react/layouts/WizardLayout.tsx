@@ -1,6 +1,6 @@
 // WizardLayout — multi-step form layout strategy over FormRenderer.
 // Each step is rendered one at a time with forward/back navigation and a progress indicator.
-import { useState } from 'react'
+// Controlled by FormEngine so failed submits can jump to the step holding an error.
 import type {
   Control,
   FieldErrors,
@@ -13,6 +13,8 @@ import { FormRenderer } from '../FormRenderer'
 
 interface WizardLayoutProps {
   steps: StepDefinition[]
+  currentStep: number
+  onStepChange: (step: number) => void
   register: UseFormRegister<Record<string, unknown>>
   errors: FieldErrors<Record<string, unknown>>
   store: VisibilityStore
@@ -20,8 +22,16 @@ interface WizardLayoutProps {
   trigger: UseFormTrigger<Record<string, unknown>>
 }
 
-export function WizardLayout({ steps, register, errors, store, control, trigger }: WizardLayoutProps) {
-  const [currentStep, setCurrentStep] = useState(0)
+export function WizardLayout({
+  steps,
+  currentStep,
+  onStepChange,
+  register,
+  errors,
+  store,
+  control,
+  trigger,
+}: WizardLayoutProps) {
   const total = steps.length
   const step = steps[currentStep]
 
@@ -32,7 +42,7 @@ export function WizardLayout({ steps, register, errors, store, control, trigger 
   async function handleNext() {
     const fieldNames = step.fields.map((field) => field.name)
     const isStepValid = await trigger(fieldNames)
-    if (isStepValid) setCurrentStep((s) => s + 1)
+    if (isStepValid) onStepChange(currentStep + 1)
   }
 
   return (
@@ -66,7 +76,7 @@ export function WizardLayout({ steps, register, errors, store, control, trigger 
         {currentStep > 0 ? (
           <button
             type="button"
-            onClick={() => setCurrentStep((s) => s - 1)}
+            onClick={() => onStepChange(currentStep - 1)}
             className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
             Back
