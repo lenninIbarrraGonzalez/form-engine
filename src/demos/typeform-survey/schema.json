@@ -5,12 +5,14 @@
       "name": "nombre",
       "type": "text",
       "label": "¿Cuál es tu nombre?",
+      "placeholder": "Ej: Juan Pérez",
       "validations": { "required": true }
     },
     {
       "name": "email",
       "type": "text",
       "label": "¿Cuál es tu correo electrónico?",
+      "placeholder": "Ej: juan@ejemplo.com",
       "validations": { "required": true }
     },
     {
@@ -28,13 +30,15 @@
       "name": "lenguajeFavorito",
       "type": "text",
       "label": "¿Cuál es tu lenguaje de programación favorito?",
+      "placeholder": "Ej: TypeScript",
       "validations": { "required": true },
       "showIf": { "field": "nivelExperiencia", "operator": "notEquals", "value": "Junior" }
     },
     {
       "name": "comentarios",
       "type": "text",
-      "label": "¿Tienes algún comentario adicional?"
+      "label": "¿Tienes algún comentario adicional?",
+      "placeholder": "Tu opinión nos ayuda a mejorar"
     }
   ]
 }

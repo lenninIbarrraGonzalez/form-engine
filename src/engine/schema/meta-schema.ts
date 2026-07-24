@@ -130,6 +130,7 @@ type FieldDefinitionInput = {
   name: string
   type: string
   label: string
+  placeholder?: string
   showIf?: ShowIfConditionInput
   validations?: z.infer<typeof ValidationDefSchema>
   fields?: FieldDefinitionInput[]
@@ -147,6 +148,7 @@ const FieldDefinitionSchema: z.ZodType<FieldDefinitionInput> = z.lazy(() =>
       required_error: 'Field label is required',
       invalid_type_error: 'Field label must be a string',
     }),
+    placeholder: z.string().optional(),
     showIf: ShowIfConditionSchema.optional(),
     validations: ValidationDefSchema.optional(),
     fields: z.array(FieldDefinitionSchema).optional(),

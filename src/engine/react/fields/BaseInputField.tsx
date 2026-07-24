@@ -7,6 +7,7 @@ interface BaseInputFieldProps {
   name: string
   label: string
   type: string
+  placeholder?: string
   register: UseFormRegister<Record<string, unknown>>
   error?: FieldError
   registerOptions?: RegisterOptions<Record<string, unknown>>
@@ -16,6 +17,7 @@ export function BaseInputField({
   name,
   label,
   type,
+  placeholder,
   register,
   error,
   registerOptions,
@@ -30,6 +32,7 @@ export function BaseInputField({
       <input
         id={name}
         type={type}
+        placeholder={placeholder}
         {...register(name, registerOptions)}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={errorId}

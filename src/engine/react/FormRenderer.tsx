@@ -89,6 +89,7 @@ function FieldWrapper({
           key={qualifiedName}
           name={qualifiedName}
           label={field.label}
+          placeholder={field.placeholder}
           register={register}
           error={error}
         />
@@ -100,6 +101,7 @@ function FieldWrapper({
           key={qualifiedName}
           name={qualifiedName}
           label={field.label}
+          placeholder={field.placeholder}
           register={register}
           error={error}
         />
@@ -123,6 +125,7 @@ function FieldWrapper({
           key={qualifiedName}
           name={qualifiedName}
           label={field.label}
+          placeholder={field.placeholder}
           register={register}
           error={error}
         />

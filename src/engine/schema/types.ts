@@ -39,6 +39,7 @@ export interface FieldDefinition {
   name: string
   type: FieldType
   label: string
+  placeholder?: string
   showIf?: ShowIfCondition
   validations?: ValidationDef
   fields?: FieldDefinition[]  // for group / array item template

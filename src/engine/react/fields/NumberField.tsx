@@ -4,6 +4,7 @@ import { BaseInputField } from './BaseInputField'
 interface NumberFieldProps {
   name: string
   label: string
+  placeholder?: string
   register: UseFormRegister<Record<string, unknown>>
   error?: FieldError
 }

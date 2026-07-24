@@ -16,41 +16,48 @@
       "name": "poliza",
       "type": "text",
       "label": "Número de Póliza",
+      "placeholder": "Ej: POL-2024-001234",
       "validations": { "required": true }
     },
     {
       "name": "fechaSiniestro",
       "type": "text",
       "label": "Fecha del Siniestro",
+      "placeholder": "Ej: 2024-07-15",
       "validations": { "required": true }
     },
     {
       "name": "descripcion",
       "type": "text",
-      "label": "Descripción del Siniestro"
+      "label": "Descripción del Siniestro",
+      "placeholder": "Describa brevemente lo ocurrido"
     },
     {
       "name": "placaVehiculo",
       "type": "text",
       "label": "Placa del Vehículo",
+      "placeholder": "Ej: ABC-123",
       "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" }
     },
     {
       "name": "modeloVehiculo",
       "type": "text",
       "label": "Modelo del Vehículo",
+      "placeholder": "Ej: Toyota Corolla 2020",
       "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" }
     },
     {
       "name": "direccionHogar",
       "type": "text",
       "label": "Dirección del Hogar",
+      "placeholder": "Ej: Calle 123 # 45-67, Bogotá",
       "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Hogar" }
     },
     {
       "name": "danoEstimado",
       "type": "number",
       "label": "Daño Estimado",
+      "placeholder": "Ej: 5000000",
       "showIf": {
         "or": [
           { "field": "tipoSiniestro", "operator": "equals", "value": "Vehiculo" },
@@ -62,6 +69,7 @@
       "name": "beneficiario",
       "type": "text",
       "label": "Beneficiario",
+      "placeholder": "Nombre completo del beneficiario",
       "showIf": { "field": "tipoSiniestro", "operator": "equals", "value": "Vida" }
     },
     {
@@ -90,7 +98,8 @@
         {
           "name": "descripcionDoc",
           "type": "text",
-          "label": "Descripción"
+          "label": "Descripción",
+          "placeholder": "Ej: Foto del daño frontal"
         },
         {
           "name": "archivoAdjunto",
