@@ -32,9 +32,13 @@ function useDebounce<T>(value: T, delayMs: number): T {
 
 // ---- Component -------------------------------------------------------
 
-export function Playground() {
+interface PlaygroundProps {
+  initialSchema?: string | null
+}
+
+export function Playground({ initialSchema }: PlaygroundProps) {
   // Ephemeral: no localStorage, no persistence — resets on refresh
-  const [editorText, setEditorText] = useState(DEFAULT_SCHEMA_STRING)
+  const [editorText, setEditorText] = useState(initialSchema ?? DEFAULT_SCHEMA_STRING)
   const debouncedText = useDebounce(editorText, 300)
 
   const [result, setResult] = useState<PlaygroundResult>(DEFAULT_RESULT)
