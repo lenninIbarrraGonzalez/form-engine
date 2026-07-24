@@ -352,8 +352,26 @@ export function About({ onTryExample }: AboutProps) {
         </div>
       </section>
 
-      {/* Footer spacer */}
-      <div className="h-8" />
+      {/* Footer */}
+      <footer className="border-t border-gray-200 pt-8 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+        <span>
+          {tr.footer.builtBy}{' '}
+          <span className="font-semibold text-gray-600">{tr.footer.name}</span>
+        </span>
+        <div className="flex items-center gap-4">
+          {tr.footer.links.map((link) => (
+            <a
+              key={link.label}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-indigo-600 transition-colors font-medium"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </footer>
     </div>
   )
 }

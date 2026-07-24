@@ -184,6 +184,15 @@ export const t = {
         },
       ],
     },
+    footer: {
+      builtBy: 'Construido por',
+      name: 'Lennin Ibarra',
+      links: [
+        { label: 'GitHub', url: 'https://github.com/lenninIbarrraGonzalez/form-engine' },
+        { label: 'LinkedIn', url: 'https://www.linkedin.com/in/lennin-geovanny-ibarra/' },
+        { label: 'Portfolio', url: 'https://lenninibarra.netlify.app/en' },
+      ],
+    },
     tips: {
       title: 'Tips para explorar',
       items: [
@@ -417,6 +426,15 @@ export const t = {
           title: 'Explore the real demos',
           desc: 'The demos use the same schemas — you can inspect them in the source code on GitHub.',
         },
+      ],
+    },
+    footer: {
+      builtBy: 'Built by',
+      name: 'Lennin Ibarra',
+      links: [
+        { label: 'GitHub', url: 'https://github.com/lenninIbarrraGonzalez/form-engine' },
+        { label: 'LinkedIn', url: 'https://www.linkedin.com/in/lennin-geovanny-ibarra/' },
+        { label: 'Portfolio', url: 'https://lenninibarra.netlify.app/en' },
       ],
     },
   },
