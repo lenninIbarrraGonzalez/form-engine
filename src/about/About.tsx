@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, type ReactNode } from 'react'
 import { t, type Lang } from './translations'
 import examples from './examples'
 
@@ -32,9 +32,68 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
+function MobileCarousel({ items, gridClass = 'sm:grid-cols-2' }: { items: ReactNode[]; gridClass?: string }) {
+  const [index, setIndex] = useState(0)
+  const touchStartX = useRef<number | null>(null)
+
+  const prev = () => setIndex((i) => (i - 1 + items.length) % items.length)
+  const next = () => setIndex((i) => (i + 1) % items.length)
+
+  return (
+    <>
+      {/* Mobile carousel */}
+      <div className="sm:hidden relative">
+        <div
+          className="overflow-hidden"
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+          onTouchEnd={(e) => {
+            if (touchStartX.current === null) return
+            const delta = touchStartX.current - e.changedTouches[0].clientX
+            if (Math.abs(delta) > 40) delta > 0 ? next() : prev()
+            touchStartX.current = null
+          }}
+        >
+          {items.map((item, i) => (
+            <div key={i} className={i === index ? 'block' : 'hidden'}>{item}</div>
+          ))}
+        </div>
+
+        <button type="button" onClick={prev} aria-label="Previous"
+          className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-colors">
+          ‹
+        </button>
+        <button type="button" onClick={next} aria-label="Next"
+          className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-colors">
+          ›
+        </button>
+
+        <div className="flex justify-center gap-1.5 mt-4">
+          {items.map((_, i) => (
+            <button key={i} type="button" onClick={() => setIndex(i)} aria-label={`Slide ${i + 1}`}
+              className={`w-2 h-2 rounded-full transition-colors ${i === index ? 'bg-indigo-500' : 'bg-gray-300 hover:bg-gray-400'}`} />
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop grid */}
+      <div className={`hidden sm:grid ${gridClass} gap-4`}>
+        {items}
+      </div>
+    </>
+  )
+}
+
 export function About({ onTryExample }: AboutProps) {
   const [lang, setLang] = useState<Lang>('es')
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [carouselIndex, setCarouselIndex] = useState(0)
+  const touchStartX = useRef<number | null>(null)
+
+  const prevCard = useCallback(
+    (total: number) => setCarouselIndex((i) => (i - 1 + total) % total),
+    [],
+  )
+  const nextCard = useCallback((total: number) => setCarouselIndex((i) => (i + 1) % total), [])
 
   const tr = t[lang]
 
@@ -55,7 +114,7 @@ export function About({ onTryExample }: AboutProps) {
   )
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 space-y-16">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-16">
       {/* Lang toggle */}
       <div className="flex justify-end">
         <button
@@ -72,33 +131,73 @@ export function About({ onTryExample }: AboutProps) {
         <span className="inline-block text-xs font-semibold uppercase tracking-widest text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">
           {tr.hero.badge}
         </span>
-        <h1 className="text-4xl font-bold text-gray-900">{tr.hero.title}</h1>
-        <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">{tr.hero.subtitle}</p>
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">{tr.hero.title}</h1>
+        <p className="text-base sm:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">{tr.hero.subtitle}</p>
       </section>
 
       {/* Use cases */}
       <section className="space-y-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{tr.useCases.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{tr.useCases.title}</h2>
           <p className="text-gray-500 mt-2 text-sm leading-relaxed max-w-3xl">{tr.useCases.intro}</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5">
-          {tr.useCases.items.map((item) => (
-            <div
-              key={item.industry}
-              className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-2"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{item.icon}</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-sm">{item.industry}</p>
-                  <p className="text-xs text-indigo-500 font-medium">{item.companies}</p>
+        <div className="relative">
+          {/* Card */}
+          <div
+            className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-2 min-h-[180px]"
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+            onTouchEnd={(e) => {
+              if (touchStartX.current === null) return
+              const delta = touchStartX.current - e.changedTouches[0].clientX
+              if (Math.abs(delta) > 40) delta > 0 ? nextCard(tr.useCases.items.length) : prevCard(tr.useCases.items.length)
+              touchStartX.current = null
+            }}
+          >
+            {tr.useCases.items.map((item, i) => (
+              <div key={item.industry} className={i === carouselIndex ? 'block' : 'hidden'}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{item.icon}</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">{item.industry}</p>
+                    <p className="text-xs text-indigo-500 font-medium">{item.companies}</p>
+                  </div>
                 </div>
+                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
-              <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Prev / Next */}
+          <button
+            type="button"
+            onClick={() => prevCard(tr.useCases.items.length)}
+            aria-label="Previous"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-colors"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={() => nextCard(tr.useCases.items.length)}
+            aria-label="Next"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-colors"
+          >
+            ›
+          </button>
+
+          {/* Dots */}
+          <div className="flex justify-center gap-1.5 mt-4">
+            {tr.useCases.items.map((item, i) => (
+              <button
+                key={item.industry}
+                type="button"
+                onClick={() => setCarouselIndex(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`w-2 h-2 rounded-full transition-colors ${i === carouselIndex ? 'bg-indigo-500' : 'bg-gray-300 hover:bg-gray-400'}`}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="rounded-xl border-l-4 border-indigo-400 bg-indigo-50 px-5 py-4">
@@ -112,15 +211,15 @@ export function About({ onTryExample }: AboutProps) {
         <h2 className="text-2xl font-bold text-gray-900">{tr.howItWorks.title}</h2>
 
         {/* 3-column diagram */}
-        <div className="flex items-start gap-2">
+        <div className="flex flex-col md:flex-row items-start gap-4">
           {tr.howItWorks.layers.map((layer, i) => (
-            <div key={layer.label} className="flex items-start gap-2 flex-1">
+            <div key={layer.label} className="flex md:items-start gap-2 flex-1 w-full md:w-auto">
               <div className="flex-1 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="text-sm font-bold text-indigo-600 mb-2">{layer.label}</div>
                 <p className="text-sm text-gray-500 leading-relaxed">{layer.desc}</p>
               </div>
               {i < tr.howItWorks.layers.length - 1 && (
-                <span className="text-gray-400 text-lg mt-5 flex-shrink-0">
+                <span className="hidden md:inline text-gray-400 text-lg mt-5 flex-shrink-0">
                   {tr.howItWorks.arrow}
                 </span>
               )}
@@ -198,7 +297,7 @@ export function About({ onTryExample }: AboutProps) {
         {/* Field types */}
         <div className="space-y-3">
           <h3 className="font-semibold text-gray-800">{tr.schemaGuide.fieldTypesTitle}</h3>
-          <div className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left">
                 <tr>
@@ -225,7 +324,7 @@ export function About({ onTryExample }: AboutProps) {
         {/* Validations */}
         <div className="space-y-3">
           <h3 className="font-semibold text-gray-800">{tr.schemaGuide.validationsTitle}</h3>
-          <div className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left">
                 <tr>
@@ -286,7 +385,7 @@ export function About({ onTryExample }: AboutProps) {
       {/* Examples */}
       <section className="space-y-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{tr.examples.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{tr.examples.title}</h2>
           <p className="text-gray-500 mt-1 text-sm">{tr.examples.subtitle}</p>
         </div>
         <div className="space-y-6">
@@ -295,29 +394,29 @@ export function About({ onTryExample }: AboutProps) {
               key={i}
               className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
             >
-              <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
+              <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-xs font-bold text-gray-400">#{i + 1}</span>
                     <h3 className="font-bold text-gray-900">{item.title}</h3>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 whitespace-nowrap">
                       {item.tag}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500">{item.desc}</p>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex gap-2 sm:flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => handleCopyExample(i)}
-                    className="text-xs px-3 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="flex-1 sm:flex-none text-xs px-3 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
                   >
                     {copiedIndex === i ? tr.examples.copiedBtn : tr.examples.copyBtn}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleTryExample(i)}
-                    className="text-xs px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                    className="flex-1 sm:flex-none text-xs px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
                   >
                     {tr.examples.tryBtn}
                   </button>
@@ -336,8 +435,8 @@ export function About({ onTryExample }: AboutProps) {
       {/* Tips */}
       <section className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">{tr.tips.title}</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          {tr.tips.items.map((tip) => (
+        <MobileCarousel
+          items={tr.tips.items.map((tip) => (
             <div
               key={tip.title}
               className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm flex gap-4"
@@ -349,7 +448,7 @@ export function About({ onTryExample }: AboutProps) {
               </div>
             </div>
           ))}
-        </div>
+        />
       </section>
 
       {/* Footer */}
